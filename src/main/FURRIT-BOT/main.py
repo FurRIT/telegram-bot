@@ -36,20 +36,31 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 #indexing
+
+async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Removing $350\nYou lucky bastard"
+    )
+
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
-    text = "AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        chat_id=update.effective_chat.id,
+        text="AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO\nyou havent finished this yet"
     )
+
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6368893309:AAFH_9TxDdRJfT7rReTWVkAjirFFdCpNSEM').build()
 
     start_handler = CommandHandler('start', start)
     pan_handler = CommandHandler('pan', pan)
-    fine_handler = CommandHandler('fine', pan)
+    fine_handler = CommandHandler('fine', fines)
+    remove_fine_handler = CommandHandler('un fine', Rfine)
     application.add_handler(start_handler)
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)
+    application.add_handler(remove_fine_handler)
 
 
     application.run_polling()

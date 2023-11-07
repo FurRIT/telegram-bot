@@ -44,13 +44,10 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 #why wwont it work????
-
-
-
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="AWOOOOOOOOOOOOOOOOOOOOOOOOOO\nYou havent done this yet"
+        text="AWOOOOOOOOOO\nfining a user"
     )
 
 if __name__ == '__main__':

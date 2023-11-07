@@ -43,8 +43,10 @@ if __name__ == '__main__':
 
     start_handler = CommandHandler('start', start)
     pan_handler = CommandHandler('pan', pan)
+    fine_handler = CommandHandler('fine', pan)
     application.add_handler(start_handler)
     application.add_handler(pan_handler)
+    application.add_handler(fine_handler)
 
 
     application.run_polling()

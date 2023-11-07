@@ -46,8 +46,9 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO\nyou havent finished this yet"
+        text="AWOOOOOOOOOOOOOOOOOOOOOOOOOO\nYou havent done this yet"
     )
+
 
 
 if __name__ == '__main__':

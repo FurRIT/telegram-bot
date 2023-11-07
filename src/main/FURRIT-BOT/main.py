@@ -40,7 +40,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Removing $350\nYou lucky bastard"
+        text="Removing $350 from\nYou lucky bastard"
     )
 
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):

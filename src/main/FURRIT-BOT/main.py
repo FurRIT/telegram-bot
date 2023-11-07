@@ -36,20 +36,22 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 #indexing
-
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Removing $350 from\nYou lucky bastard"
     )
 
+
+#why wwont it work????
+
+
+
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="AWOOOOOOOOOOOOOOOOOOOOOOOOOO\nYou havent done this yet"
     )
-
-
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6368893309:AAFH_9TxDdRJfT7rReTWVkAjirFFdCpNSEM').build()

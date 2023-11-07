@@ -35,8 +35,6 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
-#why it no work??
-
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
     text = "AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO"

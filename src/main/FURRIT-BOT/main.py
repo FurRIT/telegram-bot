@@ -35,6 +35,8 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
+async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = "AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6368893309:AAFH_9TxDdRJfT7rReTWVkAjirFFdCpNSEM').build()

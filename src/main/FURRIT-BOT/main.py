@@ -35,9 +35,13 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
-#indexing
 
-#why wwont it work????
+
+async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Fining a user"
+    )
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,

@@ -36,7 +36,9 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
     text = "AWWOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+    )
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6368893309:AAFH_9TxDdRJfT7rReTWVkAjirFFdCpNSEM').build()

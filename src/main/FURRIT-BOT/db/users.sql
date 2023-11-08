@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS USERS;
+
+CREATE TABLE USERS(
+    telegram-id VARCHAR(64)
+    username VARCHAR(64)
+    );

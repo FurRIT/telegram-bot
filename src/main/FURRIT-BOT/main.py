@@ -37,6 +37,24 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
+async def print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #Formating of manually adding a chat to this list:
+    #Make a new line and type: chat += "\n the chat + any other info abt it"
+    chat = "IDK, there arent any others"
+    chat += "\n find some"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=chat
+    )
+async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Formating of manually adding a command to this list:
+    # Make a new line and type: chat += "\n the command + any other info abt it"
+    commands = "The list of user commands for the Bot:"
+    commands += "\n /chats : lists all Furrit chats"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=commands
+    )
 async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
     #count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
@@ -48,7 +66,7 @@ async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text=text
     )
-    print(admins)
+    print(admins) #remove /TODO
 
 #removes a single fine from a user
 # should allow the caller to specify the amt removed, also need to
@@ -113,5 +131,7 @@ if __name__ == '__main__':
     application.add_handler(remove_fine_handler)
     application.add_handler(CommandHandler("awoo",autoAwoo))
 
+    application.add_handler(CommandHandler("commands", print_commands))
+    application.add_handler(CommandHandler("chats", print_chats))
 
     application.run_polling()

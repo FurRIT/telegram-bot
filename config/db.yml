@@ -1,0 +1,5 @@
+host: localhost
+database: furrit-users
+user: caden
+password: PertainsPup1!
+port: 5432

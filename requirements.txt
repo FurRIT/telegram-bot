@@ -1,3 +1,4 @@
 python-telegram-bot
 psycopg2-binary
-PyYAML
+PyYAML~=6.0.1
+APScheduler~=3.10.4

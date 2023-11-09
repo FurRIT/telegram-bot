@@ -5,7 +5,7 @@ import os
 
 def connect():
     config = {}
-    yml_path = os.path.join(os.path.dirname(__file__), '../../config/db.yml')
+    yml_path = '/Users/caden/PycharmProjects/FURRIT-TG-BOT/config/db.yml'
     with open(yml_path, 'r') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     return psycopg2.connect(dbname=config['database'],
@@ -16,7 +16,7 @@ def connect():
 
 
 def exec_sql_file(path):
-    full_path = os.path.join(os.path.dirname(__file__), f'../../{path}')
+    full_path = path
     conn = connect()
     cur = conn.cursor()
     with open(full_path, 'r') as file:

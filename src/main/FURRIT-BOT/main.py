@@ -1,7 +1,11 @@
 import logging
 import random
+from functools import partial
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
+from db.users import add_current_members, get_members, rebuild_tables
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -9,11 +13,16 @@ logging.basicConfig(
 )
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="I'm a bot, please talk to me!"
-    )
+async def handle_messages(update: Update, context: CallbackContext):
+    message = update.message
+    user = message.from_user
+    user_id = user.id
+    username = user.username
+
+    try:
+        add_current_members(username, user_id)
+    except Exception as e:
+        logging.error(e)
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,13 +45,22 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=get_members()
+    )
+
+
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('6368893309:AAFH_9TxDdRJfT7rReTWVkAjirFFdCpNSEM').build()
+    application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
 
-    start_handler = CommandHandler('start', start)
     pan_handler = CommandHandler('pan', pan)
-    application.add_handler(start_handler)
-    application.add_handler(pan_handler)
+    get_handler = CommandHandler('get', get_all_members)
+    members_handler = MessageHandler(filters.CHAT, handle_messages)
 
+    application.add_handler(pan_handler)
+    application.add_handler(get_handler)
+    application.add_handler(members_handler)
 
     application.run_polling()

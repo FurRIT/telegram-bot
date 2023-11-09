@@ -37,6 +37,36 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
+async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Formating of manually adding to this list:
+    # Make a new line and type: links += "\n the links + any other info abt it"
+    links = "Links:"
+    links += "\n There are none"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=links
+    )
+
+async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Formating of manually adding to this list:
+    # Make a new line and type: chan += "\n the channel + any other info abt it"
+    chan = "Furrit Channels:"
+    chan += "\n There are none"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=chan
+    )
+
+async def print_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Formating of manually adding to this list:
+    # Make a new line and type: rule += "\n the rule + any other info abt it"
+    rules = "Furrit Rules:"
+    rules += "\n There are none, go wild"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=rules
+    )
+
 async def print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Formating of manually adding a chat to this list:
     #Make a new line and type: chat += "\n the chat + any other info abt it"
@@ -48,9 +78,11 @@ async def print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a command to this list:
-    # Make a new line and type: chat += "\n the command + any other info abt it"
+    # Make a new line and type: command += "\n the command + any other info abt it"
     commands = "The list of user commands for the Bot:"
-    commands += "\n /chats : lists all Furrit chats"
+    commands += "\n /chats : lists all Furrit chats\n/commands : lists the commands for this bot"
+    commands += "\n /rules : Lists all the current rules of furrit\n/channels : lists furrit channels"
+    commands += "\n /links : Lists links to furrit channels, chats, sites, etc"
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=commands
@@ -133,5 +165,8 @@ if __name__ == '__main__':
 
     application.add_handler(CommandHandler("commands", print_commands))
     application.add_handler(CommandHandler("chats", print_chats))
+    application.add_handler(CommandHandler("rules", print_rules))
+    application.add_handler(CommandHandler("channels", print_c))
+    application.add_handler(CommandHandler("links", print_links))
 
     application.run_polling()

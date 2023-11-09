@@ -1,8 +1,5 @@
 import logging
 import random
-from functools import partial
-
-from apscheduler.schedulers.background import BackgroundScheduler
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, rebuild_tables
@@ -13,7 +10,7 @@ logging.basicConfig(
 )
 
 
-async def handle_messages(update: Update, context: CallbackContext):
+async def handle_messages(update: Update):
     message = update.message
     user = message.from_user
     user_id = user.id

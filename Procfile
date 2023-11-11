@@ -1,1 +1,1 @@
-worker: python src/main/main.py
+worker: python src/main/FURRIT-BOT/main.py

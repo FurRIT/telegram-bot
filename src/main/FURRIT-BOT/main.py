@@ -7,7 +7,7 @@ from pathlib import Path
 import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, rebuild_tables
+from db.users import add_current_members, get_members, rebuild_tables, add_pan_count
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -20,7 +20,6 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = message.from_user
     user_id = user.id
     username = user.username
-
     try:
         add_current_members(username, user_id)
     except Exception as e:
@@ -32,6 +31,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if replied_message:
         original_message_id = replied_message.message_id
+        add_pan_count(replied_message.from_user.id)
         sticker_pack_name = 'FURRIT_PAN'
         sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
         stickers_in_set = sticker_set.stickers
@@ -56,6 +56,7 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
+    rebuild_tables()
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)

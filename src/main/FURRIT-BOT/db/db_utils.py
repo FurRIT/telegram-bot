@@ -1,11 +1,17 @@
+import logging
+import os
+import sys
+from pathlib import Path
+
 import psycopg2
 import yaml
-import os
-
 
 def connect():
+    path_obj = Path(os.path.abspath(sys.argv[0]))
+    new_path = path_obj.parent.parent.parent.parent.parent
+    yml_path = (str(new_path) + '/FURRIT-TG-BOT/config/db.yml')
+
     config = {}
-    yml_path = '/Users/caden/PycharmProjects/FURRIT-TG-BOT/config/db.yml'
     with open(yml_path, 'r') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     return psycopg2.connect(dbname=config['database'],

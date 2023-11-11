@@ -1,5 +1,10 @@
 import logging
 import random
+import os
+import sys
+from pathlib import Path
+
+import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, rebuild_tables
@@ -10,7 +15,7 @@ logging.basicConfig(
 )
 
 
-async def handle_messages(update: Update):
+async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     user = message.from_user
     user_id = user.id
@@ -51,7 +56,6 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
-
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)

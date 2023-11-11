@@ -6,20 +6,23 @@ from pathlib import Path
 import psycopg2
 import yaml
 
+import os
+import psycopg2
+import urllib.parse as urlparse
+
+
 def connect():
-    path_obj = Path(os.path.abspath(sys.argv[0]))
-    logger.info(path_obj)
-    yml_path = '/config/db.yml'
+    DATABASE_URL = os.environ['DATABASE_URL']
 
-    config = {}
-    with open(yml_path, 'r') as file:
-        config = yaml.load(file, Loader=yaml.FullLoader)
-    return psycopg2.connect(dbname=config['database'],
-                            user=config['user'],
-                            password=config['password'],
-                            host=config['host'],
-                            port=config['port'])
+    result = urlparse.urlparse(DATABASE_URL)
 
+    return psycopg2.connect(
+        dbname=result.path[1:],
+        user=result.username,
+        password=result.password,
+        host=result.hostname,
+        port=result.port
+    )
 
 def exec_sql_file(path):
     full_path = path

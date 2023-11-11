@@ -3,7 +3,7 @@ from .db_utils import *
 
 
 def rebuild_tables():
-    exec_sql_file('/src/main/FURRIT-BOT/db/users.sql')
+    exec_sql_file('/app/src/main/FURRIT-BOT/db/users.sql')
 
 
 def add_current_members(username, uid):

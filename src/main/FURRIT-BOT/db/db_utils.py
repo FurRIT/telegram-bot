@@ -9,7 +9,7 @@ import yaml
 def connect():
     path_obj = Path(os.path.abspath(sys.argv[0]))
     logger.info(path_obj)
-    yml_path = 'app/config/db.yml'
+    yml_path = '/config/db.yml'
 
     config = {}
     with open(yml_path, 'r') as file:

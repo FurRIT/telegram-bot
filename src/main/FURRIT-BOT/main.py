@@ -56,6 +56,7 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
+    rebuild_tables()
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)

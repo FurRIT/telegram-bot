@@ -1,0 +1,1 @@
+worker: python src/main/FURRIT-BOT/main.py

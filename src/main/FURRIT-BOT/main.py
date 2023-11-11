@@ -1,9 +1,10 @@
 import logging
 import random
+import re
 
 import telegram
 from telegram import Update, ChatMemberUpdated
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, ChatMemberHandler
+from telegram.ext import filters, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,ChatMemberHandler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -38,17 +39,21 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text0 = update.message.text
+    t = re.findall(r"[a@]+[w]+[o0]+[o0]+",text0)
+    if t:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,"Havent made yet")
+        )
     #count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
     #count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
-    count = await context.bot.get_chat_member_count(update.effective_chat.id)
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(count,admins[0].user.username,admins[1].user.username)
-    text1 = admins[0].user.username + admins[1].user.username
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=text
-    )
-    print(admins)
+    #count = await context.bot.get_chat_member_count(update.effective_chat.id)
+    #admins = await context.bot.get_chat_administrators(update.effective_chat.id)
+    #text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(count,admins[0].user.username,admins[1].user.username)
+    #text1 = admins[0].user.username + admins[1].user.username
+    #await context.bot.send_message(chat_id=update.effective_chat.id,text=text0)
+    #print(admins)
 
 #removes a single fine from a user
 # should allow the caller to specify the amt removed, also need to
@@ -112,6 +117,8 @@ if __name__ == '__main__':
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
     application.add_handler(CommandHandler("awoo",autoAwoo))
+
+    application.add_handler(MessageHandler(filters.TEXT,autoAwoo))
 
 
     application.run_polling()

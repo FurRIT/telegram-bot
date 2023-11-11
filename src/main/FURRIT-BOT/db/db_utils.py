@@ -7,7 +7,9 @@ import psycopg2
 import yaml
 
 def connect():
-    yml_path = 'app/src/main/FURRIT-TG-BOT/config/db.yml'
+    path_obj = Path(os.path.abspath(sys.argv[0]))
+    logger.info(path_obj)
+    yml_path = 'app/config/db.yml'
 
     config = {}
     with open(yml_path, 'r') as file:

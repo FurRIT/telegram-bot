@@ -50,7 +50,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
-    t = re.findall(r"[a@]+[w]+[o0]+[o0]+",text0)
+    t = re.findall(r"[a]+[w]+[o0]+[o0]+",text0)
     if t:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,

@@ -50,13 +50,11 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
-    t = re.findall(r"[a@]+[w]+[o0]+[o0]+", text0)
-    print("aw00000000000")
+    t = re.findall(r"[a@]+[w]+[o0]+[o0]+",text0)
     if t:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,
-                                                                            "Havent made yet")
+            text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,"Havent made yet")
         )
     # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
     # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
@@ -138,7 +136,7 @@ if __name__ == '__main__':
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
-    application.add_handler(CommandHandler("awoo", autoAwoo))
+    # application.add_handler(CommandHandler("awoo", autoAwoo))
     application.add_handler(get_handler)
     application.add_handler(members_handler)
 

@@ -59,7 +59,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for x in members:
             print(update.message.from_user.id)
             print(x[0])
-            if update.message.from_user.id == x[0]:
+            if int(update.message.from_user.id) == int(x[0]):
                 print("3")
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,

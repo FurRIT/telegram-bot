@@ -62,7 +62,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,
-                                                                                    "Havent made yet")
+                                                                                    members[x][2])
                 )
 
     if t:

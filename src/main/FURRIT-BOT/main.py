@@ -57,12 +57,12 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     members = get_members()
     if t:
         for x in members:
-            if update.message.from_user.id == members[x][0]:
+            if update.message.from_user.id == x[0]:
                 print("3")
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,
-                                                                                    members[x][2])
+                                                                                    x[2])
                 )
 
     if t:

@@ -141,6 +141,5 @@ if __name__ == '__main__':
     application.add_handler(remove_fine_handler)
     application.add_handler(get_handler)
     application.add_handler(members_handler)
-    application.add_handler(awoo_handler)
 
     application.run_polling()

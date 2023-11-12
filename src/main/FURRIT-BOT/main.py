@@ -132,14 +132,14 @@ if __name__ == '__main__':
     remove_fine_handler = CommandHandler('unfine', Rfine)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
+    awoo_handler = MessageHandler(filters.TEXT, autoAwoo)
 
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
-    # application.add_handler(CommandHandler("awoo", autoAwoo))
+    application.add_handler(CommandHandler("awoo", autoAwoo))
     application.add_handler(get_handler)
     application.add_handler(members_handler)
-
-    application.add_handler(MessageHandler(filters.TEXT, autoAwoo))
+    application.add_handler(awoo_handler)
 
     application.run_polling()

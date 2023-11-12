@@ -23,6 +23,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = user.username
 
     try:
+        await auto_awoo(update, context)
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
@@ -48,7 +49,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
     logging.info(text0)
     t = re.findall(r"[a]+[w]+[o]+[o]+",text0)
@@ -134,12 +135,10 @@ if __name__ == '__main__':
     remove_fine_handler = CommandHandler('unfine', Rfine)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
-    awoo_handler = MessageHandler(filters.TEXT, autoAwoo)
 
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
-    application.add_handler(CommandHandler("awoo", autoAwoo))
     application.add_handler(get_handler)
     application.add_handler(members_handler)
     application.add_handler(awoo_handler)

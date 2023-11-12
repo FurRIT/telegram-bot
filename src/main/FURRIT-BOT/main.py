@@ -121,7 +121,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=get_members()
+        text=get_members()[3]
     )
 
 

@@ -52,7 +52,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
     logging.info(text0)
-    t = re.findall(r"[@a]+[w]+[o0]+[o0]+",text0)
+    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+",text0)
     logging.info(t)
     if t:
         await context.bot.send_message(

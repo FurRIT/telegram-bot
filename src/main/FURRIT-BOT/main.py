@@ -29,8 +29,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
-    logging.info(context.bot.id)
-    logging.info(replied_message.from_user.id)
+
     if replied_message:
         if replied_message.from_user == update.message.from_user:
             await context.bot.send_message(

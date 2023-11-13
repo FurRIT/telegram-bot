@@ -37,6 +37,12 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="You can't pan yourself."
             )
             return
+        if replied_message.from_user.id == context.bot.id:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="You can't pan the bot."
+            )
+            return
         else:
             original_message_id = replied_message.message_id
             sticker_pack_name = 'FURRIT_PAN'

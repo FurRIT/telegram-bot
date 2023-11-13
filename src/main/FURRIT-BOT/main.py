@@ -31,15 +31,20 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
 
     if replied_message:
-        original_message_id = replied_message.message_id
-        sticker_pack_name = 'FURRIT_PAN'
-        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-        stickers_in_set = sticker_set.stickers
-        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-
-        random_sticker_id = random.choice(sticker_ids)
-
-        await update.message.reply_sticker(sticker=random_sticker_id, reply_to_message_id=original_message_id)
+        if replied_message.from_user == update.message.from_user:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="You can't pan yourself."
+            )
+            return
+        else:
+            original_message_id = replied_message.message_id
+            sticker_pack_name = 'FURRIT_PAN'
+            sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
+            stickers_in_set = sticker_set.stickers
+            sticker_ids = [sticker.file_id for sticker in stickers_in_set]
+            random_sticker_id = random.choice(sticker_ids)
+            await update.message.reply_sticker(sticker=random_sticker_id, reply_to_message_id=original_message_id)
     else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,

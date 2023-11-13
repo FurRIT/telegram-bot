@@ -61,6 +61,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(x[0])
             if int(update.message.from_user.id) == int(x[0]):
                 print("3")
+                x[2] += 350
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,
@@ -93,7 +94,11 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = await context.bot.get_chat(update.effective_chat.id)
     print(chat.username)
     name = '@' + admins[1].user.username
+    members = get_members()
     if replied_message:
+        for x in members:
+            if int(update.message.from_user.id) == int(x[0]):
+                x[2] -= 350
         original_message_id = replied_message.message_id
         await update.message.reply_text(
             text="forgiving a $350 fine from " + replied_message.from_user.username,

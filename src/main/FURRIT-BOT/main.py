@@ -108,7 +108,6 @@ if __name__ == '__main__':
     get_handler = CommandHandler('get', get_all_members)
     add_quote_handler = CommandHandler('addquote', add_quote)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
-    rebuild_tables()
 
     application.add_handler(pan_handler)
     application.add_handler(get_handler)

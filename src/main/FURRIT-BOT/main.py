@@ -50,7 +50,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             stickers_in_set = sticker_set.stickers
             sticker_ids = [sticker.file_id for sticker in stickers_in_set]
             random_sticker_id = random.choice(sticker_ids)
-            add_pan_count(replied_message.from_user.id)
+            add_pan_count(int(replied_message.from_user.id))
             await update.message.reply_sticker(sticker=random_sticker_id, reply_to_message_id=original_message_id)
     else:
         await context.bot.send_message(

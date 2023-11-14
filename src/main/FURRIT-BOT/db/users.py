@@ -6,6 +6,19 @@ def rebuild_tables():
     exec_sql_file('/app/src/main/FURRIT-BOT/db/users.sql')
 
 
+def add_pan_count(uid):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT PAN_COUNT FROM USERS WHERE TELEGRAM_ID = %s", (str(uid),))
+    count = cursor.fetchone()[0]
+    new_count = count + 1
+
+    cursor.execute("UPDATE USERS SET PAN_COUNT = %s "
+                   "WHERE TELEGRAM_ID = %s", (new_count, str(uid)))
+    conn.commit()
+    conn.close()
+
+
 def add_current_members(username, uid):
     conn = connect()
     cursor = conn.cursor()
@@ -22,7 +35,6 @@ def add_current_members(username, uid):
         conn.commit()
         conn.close()
         return 0
-
 
 
 def get_members():

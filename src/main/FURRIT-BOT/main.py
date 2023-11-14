@@ -7,7 +7,7 @@ from pathlib import Path
 import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, rebuild_tables
+from db.users import add_current_members, get_members, rebuild_tables, add_pan_count
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -50,6 +50,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             stickers_in_set = sticker_set.stickers
             sticker_ids = [sticker.file_id for sticker in stickers_in_set]
             random_sticker_id = random.choice(sticker_ids)
+            add_pan_count(replied_message.from_user.id)
             await update.message.reply_sticker(sticker=random_sticker_id, reply_to_message_id=original_message_id)
     else:
         await context.bot.send_message(

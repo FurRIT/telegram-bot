@@ -68,6 +68,7 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
+    logging.info(replied_message)
 
     try:
         if replied_message:
@@ -88,6 +89,7 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 quote_user_id = replied_message.from_user.id
                 quote_contents = replied_message.text
+                logging.info(quote_contents)
                 sender_user_id = update.message.from_user.id
                 add_quote_db(sender_user_id, quote_user_id, quote_contents)
 

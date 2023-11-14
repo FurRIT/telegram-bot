@@ -71,6 +71,7 @@ if __name__ == '__main__':
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
+    rebuild_tables()
 
     application.add_handler(pan_handler)
     application.add_handler(get_handler)

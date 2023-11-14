@@ -8,6 +8,7 @@ def rebuild_user_tables():
     exec_sql_file('/app/src/main/FURRIT-BOT/db/users.sql')
     exec_sql_file('/app/src/main/FURRIT-BOT/db/quotes.sql')
 
+
 def rebuild_quote_tables():
     exec_sql_file('/app/src/main/FURRIT-BOT/db/quotes.sql')
 
@@ -59,12 +60,14 @@ def add_quote_db(from_uid, to_uid, quote):
         conn.close()
         return 0
 
+
 def get_members():
     conn = connect()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM USERS')
     existence = cursor.fetchall()
     return existence
+
 
 def get_quotes():
     conn = connect()

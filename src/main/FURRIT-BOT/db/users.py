@@ -4,8 +4,12 @@ import datetime
 from .db_utils import *
 
 
-def rebuild_tables():
+def rebuild_user_tables():
     exec_sql_file('/app/src/main/FURRIT-BOT/db/users.sql')
+    exec_sql_file('/app/src/main/FURRIT-BOT/db/quotes.sql')
+
+def rebuild_quote_tables():
+    exec_sql_file('/app/src/main/FURRIT-BOT/db/quotes.sql')
 
 
 def add_pan_count(uid):

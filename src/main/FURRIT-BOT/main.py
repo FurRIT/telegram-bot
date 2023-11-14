@@ -107,7 +107,7 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
-    add_quote_handler = CommandHandler('addquote', add_quote)
+    add_quote_handler = CommandHandler('add_quote', add_quote)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
 
     application.add_handler(pan_handler)

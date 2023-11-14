@@ -7,7 +7,8 @@ from pathlib import Path
 import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, rebuild_tables, add_pan_count, add_quote_db, get_quotes
+from db.users import add_current_members, get_members, rebuild_tables, add_pan_count, add_quote_db, get_quotes, \
+    rebuild_quote_tables
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -119,6 +120,7 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
+    rebuild_quote_tables()
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     get_quote_handler = CommandHandler('get_quotes', get_all_quotes)

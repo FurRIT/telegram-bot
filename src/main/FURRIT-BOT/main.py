@@ -65,16 +65,18 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=get_members()
     )
 
+
 async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=get_quotes()
     )
 
+
 async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
     logging.info(replied_message)
-
+    # Need to create a base case for quotes that are too long
     try:
         if replied_message:
             if replied_message.from_user == update.message.from_user:

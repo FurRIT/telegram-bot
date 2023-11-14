@@ -47,7 +47,7 @@ def add_quote_db(from_uid, to_uid, quote):
 
     if not existence:
         cursor.execute("INSERT INTO QUOTES (TELEGRAM_ID, QUOTE, ISSUED_BY_ID, DATE_ISSUED) VALUES (%s, %s, %s, %s)",
-                       (str(from_uid), quote, str(to_uid), datetime.date.today()))
+                       (str(from_uid), quote, str(to_uid), str(datetime.date.today())))
         conn.commit()
         conn.close()
         return 1

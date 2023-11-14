@@ -96,6 +96,7 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     text="Quote added."
                 )
     except Exception as e:
+        logging.info(e)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Failed. {e}"

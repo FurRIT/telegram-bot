@@ -76,7 +76,6 @@ async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
-    logging.info(replied_message)
     # Need to create a base case for quotes that are too long
     try:
         if replied_message:
@@ -97,7 +96,6 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 quote_user_id = replied_message.from_user.id
                 quote_contents = replied_message.text
-                logging.info(quote_contents)
                 sender_user_id = update.message.from_user.id
                 value = add_quote_db(sender_user_id, quote_user_id, quote_contents)
                 if value == 1:

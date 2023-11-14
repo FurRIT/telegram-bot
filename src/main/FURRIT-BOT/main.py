@@ -91,12 +91,17 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 quote_contents = replied_message.text
                 logging.info(quote_contents)
                 sender_user_id = update.message.from_user.id
-                add_quote_db(sender_user_id, quote_user_id, quote_contents)
-
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Quote added."
-                )
+                value = add_quote_db(sender_user_id, quote_user_id, quote_contents)
+                if value == 1:
+                    await context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="Quote added."
+                    )
+                if value == 0:
+                    await context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="You can't quote this twice!"
+                    )
     except Exception as e:
         logging.info(e)
         await context.bot.send_message(

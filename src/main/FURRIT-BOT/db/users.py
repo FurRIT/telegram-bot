@@ -1,4 +1,6 @@
 # oh god
+import datetime
+
 from .db_utils import *
 
 
@@ -35,6 +37,15 @@ def add_current_members(username, uid):
         conn.commit()
         conn.close()
         return 0
+
+
+def add_quote_db(from_uid, to_uid, quote):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO QUOTES (TELEGRAM_ID, QUOTE, ISSUED_BY_ID, DATE) VALUES (%s, %s, %s)",
+                   (str(from_uid), quote, str(to_uid), datetime.date.today()))
+    conn.commit()
+    conn.close()
 
 
 def get_members():

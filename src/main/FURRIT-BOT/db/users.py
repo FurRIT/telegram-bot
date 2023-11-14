@@ -14,7 +14,7 @@ def add_pan_count(uid):
     new_count = count + 1
 
     cursor.execute("UPDATE USERS SET PAN_COUNT = %s "
-                   "WHERE TELEGRAM_ID = %s", (new_count, uid))
+                   "WHERE TELEGRAM_ID = %s", (new_count, str(uid)))
     conn.commit()
     conn.close()
 

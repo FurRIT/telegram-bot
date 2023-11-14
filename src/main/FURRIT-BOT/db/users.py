@@ -61,3 +61,10 @@ def get_members():
     cursor.execute('SELECT * FROM USERS')
     existence = cursor.fetchall()
     return existence
+
+def get_quotes():
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM QUOTES')
+    existence = cursor.fetchall()
+    return existence

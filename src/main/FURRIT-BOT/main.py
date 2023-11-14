@@ -7,7 +7,7 @@ from pathlib import Path
 import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, rebuild_tables, add_pan_count, add_quote_db, get_quotes, \
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, \
     rebuild_quote_tables
 
 logging.basicConfig(

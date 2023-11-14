@@ -107,6 +107,7 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
+    rebuild_tables()
     pan_handler = CommandHandler('pan', pan)
     get_handler = CommandHandler('get', get_all_members)
     add_quote_handler = CommandHandler('add_quote', add_quote)

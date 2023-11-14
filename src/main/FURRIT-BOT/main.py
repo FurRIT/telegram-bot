@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
     application.add_handler(pan_handler)
     application.add_handler(get_handler)
-    application.add_handler(members_handler)
     application.add_handler(add_quote_handler)
+    application.add_handler(members_handler)
 
     application.run_polling()

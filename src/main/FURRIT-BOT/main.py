@@ -59,8 +59,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     members = get_members()
     if t:
         for x in members:
-            print(update.message.from_user.id)
-            print(x[0])
             if int(update.message.from_user.id) == int(x[0]):
                 add_fine(x[0])
                 await context.bot.send_message(
@@ -90,9 +88,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     go = 0
     print(message[8])
     while index < len(message):
-        print(index)
         if message[index] == '@':
-            print("found the @")
             go = 1
         elif go == 1:
             if message[index] != " ":

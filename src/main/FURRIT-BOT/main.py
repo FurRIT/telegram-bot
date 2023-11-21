@@ -73,7 +73,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # removes a single fine from a user
 # should allow the caller to specify the amt removed, also need to
 #   change so that you call it using the @ of a user.
-# chat_member_update: ChatMemberUpdated,
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # if a message was replied to
     replied_message = update.message.reply_to_message

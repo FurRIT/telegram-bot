@@ -111,7 +111,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("USER IS IN CHAT")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="srgrgr")
+        text=chat.active_usernames)
 
 
 

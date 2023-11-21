@@ -33,19 +33,30 @@ def get_members():
     return existence
 
 
-def add_fine(int: id):
+def add_fine(id):
     conn = connect()
     cursor = conn.cursor()
     print("IT GOT TO THE ADD FINE PART")
-    #cursor.execute("SELECT USERNAME FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
-    sql = "UPDATE USERS SET AWOO_FINE = AWOO_FINE + 350 WHERE TELEGRAM_ID = %s", (str(id))
-    print(sql)
-
-    try:
-        cursor.execute(sql)
+    cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
+    existence = cursor.fetchone()
+    if existence:
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + 350 TELEGRAM_ID = %s",(str(id)))
         conn.commit()
-    except:
-        conn.rollback()
+        conn.close()
+        return 1
+    else:
+        conn.commit()
+        conn.close()
+        return 0
+
+    #sql = "UPDATE USERS SET AWOO_FINE = AWOO_FINE + 350 WHERE TELEGRAM_ID = %s", (str(id))
+    #print(sql)
+
+    #try:
+     #   cursor.execute(sql)
+      #  conn.commit()
+    #except:
+     #   conn.rollback()
 
     conn.close()
     return 1

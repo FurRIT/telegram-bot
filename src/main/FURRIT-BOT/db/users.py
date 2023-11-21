@@ -44,5 +44,7 @@ def add_fine(int: id):
         conn.commit()
     except:
         conn.rollback()
+    conn.close()
+    return 1
 
 

@@ -106,12 +106,20 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         index += 1
     #update.message.chat.username
     chat = update.message.chat
-    if user in chat.active_usernames:
+    members = get_members()
+    for x in members:
+        if str(user) == str(x[1]): #if the user is in the chat
+            remove_fine(350, x[0])
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="forgiving a $350 fine from " + user)
 
-        print("USER IS IN CHAT")
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=chat.active_usernames)
+    #if user in chat.active_usernames:
+
+     #   print("USER IS IN CHAT")
+    #await context.bot.send_message(
+     #   chat_id=update.effective_chat.id,
+      #  text=chat.active_usernames)
 
 
 

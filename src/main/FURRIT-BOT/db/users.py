@@ -31,3 +31,19 @@ def get_members():
     cursor.execute('SELECT * FROM USERS')
     existence = cursor.fetchall()
     return existence
+
+
+def add_fine(int: id):
+    conn = connect()
+    cursor = conn.cursor()
+    # cursor.execute("SELECT USERNAME FROM USERS WHERE TELEGRAM_ID = %s", (str(uid),))
+    sql = '''UPDATE USERS SET awoo_fine = awoo_fine + 350 WHERE telegram_id = 'id' '''
+
+    try:
+        conn.execute(sql)
+        conn.commit()
+    except:
+        conn.rollback()
+
+    #TODO have to cycle through the user ids to find who to add the fines to
+

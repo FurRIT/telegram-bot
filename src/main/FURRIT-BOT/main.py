@@ -8,7 +8,7 @@ from pathlib import Path
 from telegram import Update, ChatMemberUpdated
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters, \
     ChatMemberHandler
-from db.users import add_current_members, get_members, rebuild_tables
+from db.users import add_current_members, get_members, rebuild_tables, add_fine
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -61,7 +61,8 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(x[0])
             if int(update.message.from_user.id) == int(x[0]):
                 #print(type(x[2]))
-                x[2] += 350
+                x[2] += 350 #this does tuple assignment
+                add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,

@@ -82,10 +82,9 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="forgiving a $350 fine from " + replied_message.from_user.username,
             reply_to_message_id=replied_message.message_id)
 
-
-    await update.message.reply_text(
-        text=update.message.text,
-        chat_id=update.effective_chat.id)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=update.message.text)
 
 
     # if no message was replied to

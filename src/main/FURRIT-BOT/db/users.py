@@ -41,10 +41,11 @@ def add_fine(int: id):
     sql = '''UPDATE USERS SET awoo_fine = awoo_fine + 350 WHERE telegram_id = 'id' '''
 
     try:
-        conn.execute(sql)
+        cursor.execute(sql)
         conn.commit()
     except:
         conn.rollback()
+
     conn.close()
     return 1
 

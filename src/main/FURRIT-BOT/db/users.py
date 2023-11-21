@@ -45,5 +45,4 @@ def add_fine(int: id):
     except:
         conn.rollback()
 
-    #TODO have to cycle through the user ids to find who to add the fines to
 

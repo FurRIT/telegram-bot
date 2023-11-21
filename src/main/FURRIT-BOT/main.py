@@ -61,7 +61,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(x[0])
             if int(update.message.from_user.id) == int(x[0]):
                 #print(type(x[2]))
-                x[2] += 350 #this does tuple assignment
+                #x[2] += 350 #this does tuple assignment
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,

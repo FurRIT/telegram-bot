@@ -36,11 +36,10 @@ def get_members():
 def add_fine(id):
     conn = connect()
     cursor = conn.cursor()
-    print("IT GOT TO THE ADD FINE PART")
     cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
     existence = cursor.fetchone()
     if existence:
-        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + {} WHERE TELEGRAM_ID = '{}'".format(350, str(5342561124)))
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + {} WHERE TELEGRAM_ID = '{}'".format(350, str(id)))
         conn.commit()
         conn.close()
         return 1

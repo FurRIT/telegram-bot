@@ -36,6 +36,7 @@ def get_members():
 def add_fine(int: id):
     conn = connect()
     cursor = conn.cursor()
+    print("IT GOT TO THE ADD FINE PART")
     # cursor.execute("SELECT USERNAME FROM USERS WHERE TELEGRAM_ID = %s", (str(uid),))
     sql = '''UPDATE USERS SET awoo_fine = awoo_fine + 350 WHERE telegram_id = 'id' '''
 

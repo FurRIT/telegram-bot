@@ -47,17 +47,3 @@ def add_fine(id):
         conn.commit()
         conn.close()
         return 0
-
-    #sql = "UPDATE USERS SET AWOO_FINE = AWOO_FINE + 350 WHERE TELEGRAM_ID = %s", (str(id))
-    #print(sql)
-
-    #try:
-     #   cursor.execute(sql)
-      #  conn.commit()
-    #except:
-     #   conn.rollback()
-
-    conn.close()
-    return 1
-
-

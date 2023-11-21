@@ -55,7 +55,7 @@ def remove_fine(amt,id):
     cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
     existence = cursor.fetchone()
     if existence:
-        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE - {} WHERE TELEGRAM_ID = '{}'".format(amt, str(id)))
+        cursor.execute("UPDATE USERS SET AWOO_FINE = IF(AWOO_FINE - {} < 0, 0,AWOO_FINE - {} )WHERE TELEGRAM_ID = '{}'".format(amt, amt, str(id)))
         conn.commit()
         conn.close()
         return 1

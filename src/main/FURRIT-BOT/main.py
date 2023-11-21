@@ -91,6 +91,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     index = 8
     go = 0
     while 1:
+        print(index)
         if message[index] == '@':
             go = 1
         elif go:

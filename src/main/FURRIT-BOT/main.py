@@ -105,8 +105,9 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 break
         index += 1
     #update.message.chat.username
-    chat = telegram.Bot.get_chat(update.message.chat.id)
+    chat = update.message.chat
     if user in chat.active_usernames:
+
         print("USER IS IN CHAT")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,

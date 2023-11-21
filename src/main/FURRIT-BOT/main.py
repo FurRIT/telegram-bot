@@ -84,9 +84,6 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="forgiving a $350 fine from " + replied_message.from_user.username,
             reply_to_message_id=replied_message.message_id)
 
-
-
-
     # if no message was replied to
     message = update.message.text
     user = ""
@@ -104,53 +101,13 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 break
         index += 1
-    #update.message.chat.username
-    chat = update.message.chat
     members = get_members()
     for x in members:
         if str(user) == str(x[1]): #if the user is in the chat
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from " + user)
-
-    #if user in chat.active_usernames:
-
-     #   print("USER IS IN CHAT")
-    #await context.bot.send_message(
-     #   chat_id=update.effective_chat.id,
-      #  text=chat.active_usernames)
-
-
-
-
-    user_says = "".join(context.args)
-    # target = chat_member_update.difference().get("status")
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    chat = await context.bot.get_chat(update.effective_chat.id)
-    print(chat.username)
-    name = '@' + admins[1].user.username
-    members = get_members()
-    if replied_message:
-        for x in members:
-            if int(update.message.from_user.id) == int(x[0]):
-                x[2] -= 350
-        original_message_id = replied_message.message_id
-        await update.message.reply_text(
-            text="forgiving a $350 fine from " + replied_message.from_user.username,
-            reply_to_message_id=original_message_id)
-    elif user_says == name:
-        await context.bot.send_message(
-
-            chat_id=update.effective_chat.id,
-            text="Forgiving a $350 fine from " + user_says +
-                 "\n You havent gotten this working yet\nIDK how to get the bot to check if a user is real"
-        )
-    else:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="No user selected"
-        )
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
 
 #TODO
 # allows the caller to fine a user for a message

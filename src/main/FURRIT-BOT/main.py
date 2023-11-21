@@ -91,12 +91,12 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     index = 8
     go = 0
     print(message[8])
-    while 1:
+    while index < len(message):
         print(index)
         if message[index] == '@':
             print("found the @")
             go = 1
-        elif go:
+        elif go == 1:
             if message[index] != " ":
                 user += message[index]
             else:

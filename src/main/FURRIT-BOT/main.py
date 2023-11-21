@@ -102,10 +102,10 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 break
         index += 1
-
+    #update.message.chat.username
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=user)
+        text=update.message.chat.username)
 
 
 

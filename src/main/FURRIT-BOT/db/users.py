@@ -47,3 +47,19 @@ def add_fine(id):
         conn.commit()
         conn.close()
         return 0
+
+
+def remove_fine(amt,id):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
+    existence = cursor.fetchone()
+    if existence:
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE - {} WHERE TELEGRAM_ID = '{}'".format(amt, str(id)))
+        conn.commit()
+        conn.close()
+        return 1
+    else:
+        conn.commit()
+        conn.close()
+        return 0

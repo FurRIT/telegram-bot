@@ -8,7 +8,7 @@ from pathlib import Path
 from telegram import Update, ChatMemberUpdated
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters, \
     ChatMemberHandler
-from db.users import add_current_members, get_members, rebuild_tables, add_fine
+from db.users import add_current_members, get_members, rebuild_tables, add_fine, remove_fine
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -60,8 +60,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(update.message.from_user.id)
             print(x[0])
             if int(update.message.from_user.id) == int(x[0]):
-                #print(type(x[2]))
-                #x[2] += 350 #this does tuple assignment
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
@@ -69,26 +67,30 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                                     x[2] + 350)
                 )
 
-    #if t:
-        #await context.bot.send_message(
-            #chat_id=update.effective_chat.id,
-            #text="Don't Awoo! - $350 fine!\n\n{}'s current fines {}".format(update.message.from_user.first_name,"Havent made yet"))
-    # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
-    # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
-    # count = await context.bot.get_chat_member_count(update.effective_chat.id)
-    # admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    # text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(count,admins[0].user.username,admins[1].user.username)
-    # text1 = admins[0].user.username + admins[1].user.username
-    # await context.bot.send_message(chat_id=update.effective_chat.id,text=text0)
-    # print(admins)
-
 
 # removes a single fine from a user
 # should allow the caller to specify the amt removed, also need to
 #   change so that you call it using the @ of a user.
 # chat_member_update: ChatMemberUpdated,
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # if a message was replied to
     replied_message = update.message.reply_to_message
+    if replied_message:
+        id = replied_message.from_user.id
+        remove_fine(350, id)
+        await update.message.reply_text(
+            text="forgiving a $350 fine from " + replied_message.from_user.username,
+            reply_to_message_id=replied_message.message_id)
+
+    await update.message.reply_text(
+        text=update.message.text,
+        reply_to_message_id=replied_message.message_id)
+
+
+    # if no message was replied to
+
+
+
     user_says = "".join(context.args)
     # target = chat_member_update.difference().get("status")
     admins = await context.bot.get_chat_administrators(update.effective_chat.id)
@@ -117,7 +119,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="No user selected"
         )
 
-
+#TODO
 # allows the caller to fine a user for a message
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message

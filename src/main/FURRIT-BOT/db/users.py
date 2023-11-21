@@ -38,7 +38,8 @@ def add_fine(int: id):
     cursor = conn.cursor()
     print("IT GOT TO THE ADD FINE PART")
     # cursor.execute("SELECT USERNAME FROM USERS WHERE TELEGRAM_ID = %s", (str(uid),))
-    sql = '''UPDATE USERS SET awoo_fine = awoo_fine + 350 WHERE telegram_id = 'id' '''
+    sql = "UPDATE USERS SET awoo_fine = awoo_fine + 350 WHERE telegram_id = 'id'"
+    print(sql)
 
     try:
         cursor.execute(sql)

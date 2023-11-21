@@ -5,10 +5,12 @@ import os
 import sys
 from pathlib import Path
 
+import telegram
 from telegram import Update, ChatMemberUpdated
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters, \
     ChatMemberHandler
 from db.users import add_current_members, get_members, rebuild_tables, add_fine, remove_fine
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -103,9 +105,12 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 break
         index += 1
     #update.message.chat.username
+    chat = telegram.Bot.get_chat(update.message.chat.id)
+    if user in chat.active_usernames:
+        print("USER IS IN CHAT")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=update.message.chat.username)
+        text="srgrgr")
 
 
 

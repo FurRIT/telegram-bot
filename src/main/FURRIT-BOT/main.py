@@ -84,7 +84,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=update.message.text)
+        text=update.message.text[1])
 
 
     # if no message was replied to

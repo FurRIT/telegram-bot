@@ -46,11 +46,14 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+#reads through all messages sent and looks for awoo to fine the person
+# also currently houses the @admin function
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
     logging.info(text0)
     t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+",text0)
-    logging.info(t)
+    call = re.findall("@admin",text0)
+    logging.info(t) #idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
         for x in members:
@@ -61,6 +64,17 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
                                                                                     x[2] + 350)
                 )
+    if call:
+        #forwad message to admin chat
+        #forward the message that had @admin
+        #send a message saying the user that requested the @admin
+
+        replied_message = update.message.reply_to_message
+
+        context.bot.forward_message(
+            chat_id=update.effective_message.chat_id,
+            from_chat_id=update.effective_message.chat_id,
+            message_id=replied_message.message_id,)
 
 
 # removes a single fine from a user
@@ -99,7 +113,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,
                 text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
 
-#TODO
+
 # allows the caller to fine a user for a message
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
@@ -120,13 +134,12 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
             text="No user selected to fine"
         )
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="You havent finished this yet"
-    )
 
 
 
+#used to grab a list of all members
+#CADEN DO NOT DELETE
+#IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,

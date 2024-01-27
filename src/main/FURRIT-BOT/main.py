@@ -1,16 +1,11 @@
 import logging
 import random
 import re
-import os
-import sys
-from pathlib import Path
 
-import telegram
-from telegram import Update, ChatMemberUpdated
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters, \
-    ChatMemberHandler
-from db.users import add_current_members, get_members, rebuild_tables, add_fine, remove_fine
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
+from db.users import add_current_members, get_members, add_fine, remove_fine
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -112,6 +107,10 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         original_message_id = replied_message.message_id
         user = replied_message.from_user.username
         await update.message.reply_text(text="Fining " + user + " $350", reply_to_message_id=original_message_id)
+        members = get_members()
+        for x in members:
+            if int(update.message.from_user.id) == int(x[0]):
+                add_fine(x[0])
     else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -121,6 +120,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text="You havent finished this yet"
     )
+
 
 
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):

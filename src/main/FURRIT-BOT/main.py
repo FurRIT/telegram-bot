@@ -62,33 +62,29 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     #text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,x[2] + 350)
-                    text="This is a test function, change it back later\n x[0] = {}\nx[1]={}".format(x[0],x[1])
+                    text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
                 )
-    if call:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            #text="forward test call, chat ID is {}".format(update.effective_chat.id))
-            text="remove this")
+    if call: #if @admin was called
         #forwad message to admin chat
         #forward the message that had @admin
         #send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
-
-
         #chat IDs
         #-1002082274403  second test server
+
+        CID = -1002082274403 #the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
-                chat_id=-1002082274403,
+                chat_id=CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=replied_message.message_id, )
             await context.bot.send_message(
-                chat_id=-1002082274403,
+                chat_id=CID,
 
-                text="Attention requested in {} by {}".format(update.message.chat.title,update.message.from_user.first_name))
+                text="Attention requested in '{}' by {}".format(update.message.chat.title,update.message.from_user.first_name))
             await context.bot.forward_message(
-                chat_id=-1002082274403,
+                chat_id=CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id, )
 

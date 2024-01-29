@@ -135,7 +135,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         members = get_members()
         for x in members:
-            if int(original_message_id) == int(x[0]):
+            if int(update.message.reply_to_message.message_id) == int(x[0]):
                 add_fine(x[0])
 
         await context.bot.send_message(#test function, remove or make unused

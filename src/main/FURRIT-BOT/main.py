@@ -137,7 +137,6 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for x in members:
             if int(original_message_id) == int(x[0]):
                 add_fine(x[0])
-
                 await context.bot.send_message(#test function, remove or make unused
                     chat_id=update.effective_chat.id,
                     text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))

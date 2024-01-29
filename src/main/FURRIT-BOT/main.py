@@ -4,7 +4,7 @@ import re
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, rebuild_quote_tables
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine
 from datetime import datetime, timedelta #imported for /ban method
 
 logging.basicConfig(
@@ -237,7 +237,6 @@ if __name__ == '__main__':
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
 
-    rebuild_quote_tables()
     pan_handler = CommandHandler('pan', pan)
     fine_handler = CommandHandler('fine', fines)
     remove_fine_handler = CommandHandler('unfine', Rfine)

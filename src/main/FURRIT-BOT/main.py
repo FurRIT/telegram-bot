@@ -138,6 +138,10 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if int(update.message.from_user.id) == int(x[0]):
                 add_fine(x[0])
 
+        await context.bot.send_message(#test function, remove or make unused
+            chat_id=update.effective_chat.id,
+            text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
+
         await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
                                                                            x[2] + 350), reply_to_message_id=original_message_id)
 

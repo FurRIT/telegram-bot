@@ -136,6 +136,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         members = get_members()
         for x in members:
             if int(original_message_id) == int(x[0]):
+                print("FOUND A MESSAGE ID IHDOUHFIUHSD")
                 add_fine(x[0])
                 await context.bot.send_message(#test function, remove or make unused
                     chat_id=update.effective_chat.id,

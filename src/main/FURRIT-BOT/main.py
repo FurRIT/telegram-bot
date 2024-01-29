@@ -74,10 +74,15 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         replied_message = update.message.reply_to_message
 
-        context.bot.forward_message(
-            chat_id=update.effective_message.chat_id,
-            from_chat_id=update.effective_message.chat_id,
-            message_id=replied_message.message_id,)
+
+        if replied_message:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="there was a source")
+            context.bot.forward_message(
+                chat_id=update.effective_message.chat_id,
+                from_chat_id=update.effective_message.chat_id,
+                message_id=replied_message.message_id,)
 
 
 # removes a single fine from a user

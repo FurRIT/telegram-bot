@@ -9,6 +9,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, \
     rebuild_quote_tables
+from datetime import datetime, timedelta #imported for /ban method
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -59,6 +60,27 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
+'''
+async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    replied_message = update.message.reply_to_message
+
+    if replied_message:
+        if replied_message.from_user == update.message.from_user:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="You can't ban yourself.")
+            return
+        # TODO: or if replying user is not an admin then message : "not allowed to ban"
+        # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Unauthorized to ban.")
+            return
+        else:
+            #actual banning of the user
+            await context.bot.ban_chat_member(
+                chat_id=update.effective_chat.id, # chat
+                user_id=replied_message.from_user.id, # origional message
+                until_date=(datetime.now() + timedelta(minutes = 5)), # need to decide how long to ban for
+                revoke_messages=False) # need to decide if messages they send will be visible
+            return
+'''
 
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(

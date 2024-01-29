@@ -86,7 +86,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=-1002082274403,
 
-                text="Attention requested in {} by {}".format(update.message.chat,update.message.from_user.first_name))
+                text="Attention requested in {} by {}".format(update.message.chat.title,update.message.from_user.first_name))
             await context.bot.forward_message(
                 chat_id=-1002082274403,
                 from_chat_id=replied_message.chat_id,

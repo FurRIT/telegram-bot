@@ -67,7 +67,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if call:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="forward test call")
+            text="forward test call, chat ID is {}".format(update.effective_chat.id))
         #forwad message to admin chat
         #forward the message that had @admin
         #send a message saying the user that requested the @admin

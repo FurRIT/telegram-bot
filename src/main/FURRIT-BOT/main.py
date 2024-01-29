@@ -61,8 +61,8 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    #text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,x[2] + 350)
-                    text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
+                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,x[2] + 350)
+                    #text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
                 )
     if call: #if @admin was called
         #forwad message to admin chat
@@ -136,11 +136,8 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         members = get_members()
         for x in members:
             if int(replied_message.from_user.id) == int(x[0]):
-                print("FOUND A MESSAGE ID IHDOUHFIUHSD")
                 add_fine(x[0])
-                await context.bot.send_message(#test function, remove or make unused
-                    chat_id=update.effective_chat.id,
-                    text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
+                #await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
 
                 await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(replied_message.from_user.first_name,
                                                                                x[2] + 350), reply_to_message_id=original_message_id)

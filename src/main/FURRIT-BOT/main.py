@@ -78,13 +78,17 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         #chat IDs
         #-1002082274403  second test server
         if replied_message:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="there was a source\n chat ID is {}".format(update.effective_chat.id))
             await context.bot.forward_message(
                 chat_id=-1002082274403,
                 from_chat_id=replied_message.chat_id,
-                message_id=replied_message.message_id,)
+                message_id=replied_message.message_id, )
+            await context.bot.send_message(
+                chat_id=-1002082274403,
+                text="Attention requested in (make a way to identify groups) by {}".format(update.message.from_user))
+            await context.bot.forward_message(
+                chat_id=-1002082274403,
+                from_chat_id=replied_message.chat_id,
+                message_id=update.message.message_id, )
 
 
 # removes a single fine from a user

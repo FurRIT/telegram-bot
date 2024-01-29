@@ -4,8 +4,7 @@ import re
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine \
-    rebuild_quote_tables
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, rebuild_quote_tables
 from datetime import datetime, timedelta #imported for /ban method
 
 logging.basicConfig(

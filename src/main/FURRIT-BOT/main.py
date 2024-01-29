@@ -81,7 +81,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="there was a source\n chat ID is {}".format(update.effective_chat.id))
             context.bot.forward_message(
                 chat_id=update.effective_chat.id,
-                from_chat_id=update.effective_chat.id,
+                from_chat_id=replied_message.chat_id,
                 message_id=replied_message.message_id,)
 
 

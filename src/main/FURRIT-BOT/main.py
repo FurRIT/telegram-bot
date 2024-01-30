@@ -37,7 +37,7 @@ gifs = {
 }
 
 gif_frequency = {
-    "halo": 10
+    "halo": 1
 }
 
 

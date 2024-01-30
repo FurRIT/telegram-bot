@@ -69,9 +69,10 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if current_time < cooldown_end_time:
                 return
 
+        random_choice = random.choice(users[summon_type])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"@{users[summon_type][0]} will be summoned for {summon_type}."
+            text=f"@{random_choice} will be summoned for {summon_type}."
         )
 
         # Set cooldown for 15 minutes

@@ -67,11 +67,13 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = re.findall(r'\b[pP]+[hH]+[Yy]+[sS]+[IiLl]+[cCkK]+[sS]\b', message_text)
     h = re.findall(r'\b[hH]+[aA@]+[LlIi]+[oO0]\b', message_text)
 
-    p_pattern_1 = r'\b[pP]+[aA@]+[wW]+[ sS]\b'
-    p_pattern_2 = r'\b[pP]+[aA@]+[wW]+[ sS]+[bB]\b'
+    p_pattern_1 = r'\b[pP]+[aA@]+[wW]+[sS]\b'
+    p_pattern_2 = r'\b[pP]+[aA@]+[wW]+[bB]\b'
     p_pattern_3 = r'\b[bB]+[eE3]+[aA]+[nN]+[ sS]\b'
+    p_pattern_4 = r'\b[pP]+[aA@]+[wW]\b'
+    p_pattern_5 = r'\b[pP]+[aA@]+[wW]+[bB]+[sS]\b'
 
-    paw_patterns = f"{p_pattern_1}|{p_pattern_2}|{p_pattern_3}"
+    paw_patterns = f"{p_pattern_1}|{p_pattern_2}|{p_pattern_3}|{p_pattern_4}|{p_pattern_5}"
 
     paw = re.findall(paw_patterns, message_text)
 

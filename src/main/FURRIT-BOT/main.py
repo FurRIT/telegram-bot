@@ -70,6 +70,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
 
         random_choice = random.choice(users[summon_type])
+        logging.info(random_choice)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"@{random_choice} will be summoned for {summon_type}."

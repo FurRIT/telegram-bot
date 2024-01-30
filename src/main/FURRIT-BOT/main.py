@@ -60,7 +60,7 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if replied_message:
         original_message_id = replied_message.message_id
         await update.message.reply_text(
-            text="Pissed pants " + replied_message.from_user.username,
+            text=replied_message.from_user.username + "pissed their pants.",
             reply_to_message_id=original_message_id)
     else:
         await context.bot.send_message(
@@ -112,7 +112,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             # Set cooldown for 15 minutes
-            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+            # cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         if summon_type in gif_frequency and times_called_dict[summon_type] % gif_frequency[summon_type] == 0:
             await context.bot.send_animation(
@@ -120,7 +120,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_to_message_id=update.message.message_id,
                 animation=gifs[summon_type]
             )
-            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+            # cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         return
 

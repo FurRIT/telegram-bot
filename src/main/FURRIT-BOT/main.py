@@ -45,12 +45,11 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     v = re.findall(r"[v+V]+[0+o+O]+[R + r]+[e+E+3]+", message_text)
-    vana_uid = get_member_by_user("vanawolf")
 
     if v:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"@{vana_uid} will be summoned for vore."
+            text="@vanawolf will be summoned for vore."
         )
 
 

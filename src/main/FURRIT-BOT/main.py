@@ -6,15 +6,20 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, \
     get_member_by_user
-from datetime import datetime, timedelta  # imported for /ban method
+from datetime import datetime, timedelta, time  # imported for /ban method
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
+cooldown_dict = {}
+frequency_dict = {
+    "vore": 3
+}
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    vore_count = 0
     message = update.message
     user = message.from_user
     user_id = user.id
@@ -22,7 +27,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await auto_awoo(update, context)
-        await summons(update, context)
+        await summons(update, context, vore_count)
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
@@ -42,15 +47,31 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count):
     message_text = update.message.text
     v = re.findall(r"[v+V]+[0+o+O]+[R + r]+[e+E+3]+", message_text)
 
     if v:
+        # Check if a cooldown is active for this type of summon
+        summon_type = "vore"
+        if summon_type in cooldown_dict:
+            current_time = time.time()
+            cooldown_end_time = cooldown_dict[summon_type]
+
+            if current_time < cooldown_end_time:
+                return
+
+        if summon_type in frequency_dict and vore_count % frequency_dict[summon_type] != 0:
+            # The summon is not allowed based on frequency
+            return
+
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="@vanawolf will be summoned for vore."
+            text=f"@vanawolf will be summoned for {summon_type}."
         )
+
+        # Set cooldown for 15 minutes (900 seconds) for this type of summon
+        cooldown_dict[summon_type] = time.time() + 900
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):

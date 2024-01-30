@@ -2,6 +2,7 @@ import logging
 import random
 import re
 
+import telegram
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, \
@@ -71,7 +72,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"@{users[summon_type][0]} will be summoned for {summon_type}."
+            text=f"@{context.bot.get_user(users[summon_type][0])} will be summoned for {summon_type}."
         )
 
         # Set cooldown for 15 minutes

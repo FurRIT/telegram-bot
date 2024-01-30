@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine
-from datetime import datetime, timedelta #imported for /ban method
+from datetime import datetime, timedelta  # imported for /ban method
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -24,6 +24,24 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
+
+
+async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    replied_message = update.message.reply_to_message
+    if replied_message:
+        original_message_id = replied_message.message_id
+        await update.message.reply_text(
+            text="Pissed pants " + replied_message.from_user.username,
+            reply_to_message_id=original_message_id)
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="piss"
+        )
+
+
+async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return 0
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -57,6 +75,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
+
 '''
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
@@ -79,14 +98,15 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 '''
 
-#reads through all messages sent and looks for awoo to fine the person
+
+# reads through all messages sent and looks for awoo to fine the person
 # also currently houses the @admin function
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
     logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+",text0)
-    call = re.findall("@admin",text0)
-    logging.info(t) #idk wtf this does but it doesnt work without it
+    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
+    call = re.findall("@admin", text0)
+    logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
         for x in members:
@@ -94,23 +114,24 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-                                                                                    x[2] + 350)
+                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(
+                        update.message.from_user.first_name,
+                        x[2] + 350)
                 )
     if call:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="test")
-        #forwad message to admin chat
-        #forward the message that had @admin
-        #send a message saying the user that requested the @admin
+        # forwad message to admin chat
+        # forward the message that had @admin
+        # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
 
         context.bot.forward_message(
             chat_id=update.effective_message.chat_id,
             from_chat_id=update.effective_message.chat_id,
-            message_id=replied_message.message_id,)
+            message_id=replied_message.message_id, )
 
 
 # removes a single fine from a user
@@ -143,11 +164,11 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         index += 1
     members = get_members()
     for x in members:
-        if str(user) == str(x[1]): #if the user is in the chat
+        if str(user) == str(x[1]):  # if the user is in the chat
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user, user, x[2] - 350))
 
 
 # allows the caller to fine a user for a message
@@ -162,8 +183,10 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if int(update.message.from_user.id) == int(x[0]):
                 add_fine(x[0])
 
-        await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-                                                                           x[2] + 350), reply_to_message_id=original_message_id)
+        await update.message.reply_text(
+            text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
+                                                                             x[2] + 350),
+            reply_to_message_id=original_message_id)
 
     else:
         await context.bot.send_message(
@@ -172,10 +195,9 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-
-#used to grab a list of all members
-#CADEN DO NOT DELETE
-#IT IS USED BY MOST OF THE FUNCTIONS
+# used to grab a list of all members
+# CADEN DO NOT DELETE
+# IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,

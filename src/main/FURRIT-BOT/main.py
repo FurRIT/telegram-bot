@@ -72,7 +72,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"@{context.bot.get_chat_member(1001037004907, users[summon_type][0])} will be summoned for {summon_type}."
+            text=f"@{await context.bot.get_chat_member(1001037004907, users[summon_type][0])} will be summoned for {summon_type}."
         )
 
         # Set cooldown for 15 minutes

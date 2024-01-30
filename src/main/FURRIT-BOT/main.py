@@ -33,7 +33,8 @@ users = {
 }
 
 gifs = {
-    "halo": "src/main/FURRIT-BOT/halo-teabag.gif"
+    "halo": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnMzM29oc3RxemJkeW9lNnNiYmJ1cXcxYXMzdmRzMTA0OW0wbGhobSZ"
+            "lcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mez1CrHzuEzTiC55jM/giphy.gif"
 }
 
 gif_frequency = {

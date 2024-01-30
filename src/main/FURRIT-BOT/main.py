@@ -78,6 +78,10 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if current_time < cooldown_end_time:
                 return
 
+        if times_called_dict[summon_type] % frequency_dict[summon_type] != 0:
+            # needs to be called more times to post
+            return
+
         random_choice = random.choice(users[summon_type])
         logging.info(random_choice)
         await context.bot.send_message(

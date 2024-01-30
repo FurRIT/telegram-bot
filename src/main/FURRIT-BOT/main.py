@@ -37,7 +37,7 @@ gifs = {
 }
 
 gif_frequency = {
-    "halo": 1
+    "halo": 10
 }
 
 
@@ -53,6 +53,8 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
+
+
 async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
     if replied_message:
@@ -65,7 +67,6 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
             text="piss"
         )
-
 
 
 async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -118,6 +119,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,
                 animation=gifs[summon_type]
             )
+            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         return
 
@@ -346,6 +348,7 @@ if __name__ == '__main__':
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
 
     pan_handler = CommandHandler('pan', pan)
+    pan_handler = CommandHandler('piss', piss)
     fine_handler = CommandHandler('fine', fines)
     remove_fine_handler = CommandHandler('unfine', Rfine)
     get_handler = CommandHandler('get', get_all_members)

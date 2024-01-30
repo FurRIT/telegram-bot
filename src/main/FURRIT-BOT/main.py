@@ -62,7 +62,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = re.findall(r'\b[pP]+[hH]+[Yy]+[sS]+[IiLl]+[cCkK]+[sS]\b', message_text)
     h = re.findall(r'\b[hH]+[aA@]+[LlIi]+[oO0]\b', message_text)
 
-    if v | h:
+    if v != [] | h != []:
         if v:
             summon_type = "vore"
         if h:

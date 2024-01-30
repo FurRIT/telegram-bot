@@ -55,7 +55,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Check if a cooldown is active for this type of summon
         summon_type = "vore"
         if summon_type in cooldown_dict:
-            current_time = datetime.time()
+            current_time = datetime.now()
             cooldown_end_time = cooldown_dict[summon_type]
 
             if current_time < cooldown_end_time:
@@ -71,7 +71,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         # Set cooldown for 15 minutes (900 seconds) for this type of summon
-        cooldown_dict[summon_type] = datetime.time() + 900
+        cooldown_dict[summon_type] = datetime.now() + 900
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):

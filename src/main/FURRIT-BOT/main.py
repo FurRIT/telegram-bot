@@ -20,6 +20,9 @@ frequency_dict = {
 times_called_dict = {
     "vore": 0
 }
+users = {
+    "vore": ["vanawolf", "SilencedOne"]
+}
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -52,6 +55,7 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     v = re.findall(r'\b[vV]+[0oO]+[rR]+[eE3]+\b', message_text)
+    p = re.findall(r'\b[pP]+[hH]+[Yy]+[sS]+[IiLl]+[cCkK]+[sS]\b', message_text)
 
     if v:
         summon_type = "vore"
@@ -65,10 +69,6 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if current_time < cooldown_end_time:
                 return
 
-        if summon_type in frequency_dict and times_called_dict[summon_type] % frequency_dict[summon_type] != 0:
-            # The summon is not allowed based on frequency
-            return
-
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"@vanawolf will be summoned for {summon_type}."
@@ -77,6 +77,14 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Set cooldown for 15 minutes
         cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
+        return
+
+    if p:
+        summon_type = "physics"
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"@MrHypercube will be summoned for {summon_type}."
+        )
         return
 
 

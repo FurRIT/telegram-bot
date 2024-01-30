@@ -32,6 +32,14 @@ users = {
              "SilencedOne"]
 }
 
+gifs = {
+    "halo": "src/main/FURRIT-BOT/halo-teabag.gif"
+}
+
+gif_frequency = {
+    "halo": 10
+}
+
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -45,8 +53,6 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
-
-
 async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
     if replied_message:
@@ -59,6 +65,7 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
             text="piss"
         )
+
 
 
 async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -95,19 +102,22 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if current_time < cooldown_end_time:
                 return
 
-        if times_called_dict[summon_type] % frequency_dict[summon_type] != 0:
-            # needs to be called more times to post
-            return
+        if times_called_dict[summon_type] % frequency_dict[summon_type] == 0:
+            random_choice = random.choice(users[summon_type])
+            logging.info(random_choice)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"@{random_choice} will be summoned for {summon_type}."
+            )
 
-        random_choice = random.choice(users[summon_type])
-        logging.info(random_choice)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"@{random_choice} will be summoned for {summon_type}."
-        )
+            # Set cooldown for 15 minutes
+            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
-        # Set cooldown for 15 minutes
-        cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+        if summon_type in gif_frequency and times_called_dict[summon_type] % gif_frequency[summon_type] == 0:
+            await context.bot.send_animation(
+                chat_id=update.effective_chat.id,
+                animation=gifs[summon_type]
+            )
 
         return
 

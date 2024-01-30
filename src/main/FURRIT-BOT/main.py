@@ -21,7 +21,7 @@ times_called_dict = {
     "vore": 0
 }
 users = {
-    "vore": ["vanawolf", "SilencedOne"]
+    "vore": ["274315974", "222995514"]
 }
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -71,7 +71,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"@vanawolf will be summoned for {summon_type}."
+            text=f"@{users[summon_type][0]} will be summoned for {summon_type}."
         )
 
         # Set cooldown for 15 minutes

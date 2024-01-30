@@ -17,9 +17,9 @@ cooldown_dict = {}
 frequency_dict = {
     "vore": 3
 }
-
-vore_count = 0
-
+times_called_dict = {
+    "vore": 0
+}
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -29,7 +29,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await auto_awoo(update, context)
-        await summons(update, context, vore_count)
+        await summons(update, context)
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)
@@ -49,14 +49,15 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count):
+async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     v = re.findall(r'\b[vV]+[0oO]+[rR]+[eE3]+\b', message_text)
 
     if v:
-        vore_count += 1
-        # Check if a cooldown is active for this type of summon
         summon_type = "vore"
+        times_called_dict[summon_type] = times_called_dict[summon_type] + 1
+
+        # Check if a cooldown is active for this type of summon
         if summon_type in cooldown_dict:
             current_time = datetime.now()
             cooldown_end_time = cooldown_dict[summon_type]
@@ -64,7 +65,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count
             if current_time < cooldown_end_time:
                 return
 
-        if summon_type in frequency_dict and vore_count % frequency_dict[summon_type] != 0:
+        if summon_type in frequency_dict and times_called_dict[summon_type] % frequency_dict[summon_type] != 0:
             # The summon is not allowed based on frequency
             return
 

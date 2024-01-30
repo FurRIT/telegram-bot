@@ -73,6 +73,8 @@ def get_member_by_user(username):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute('SELECT telegram_id FROM USERS WHERE username = %s', (username,))
+    id = cursor.fetchone()
+    return id
 
 
 def add_fine(id):

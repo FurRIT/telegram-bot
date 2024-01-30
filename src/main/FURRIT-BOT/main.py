@@ -18,9 +18,9 @@ frequency_dict = {
     "vore": 3
 }
 
+vore_count = 0
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    vore_count = 0
     message = update.message
     user = message.from_user
     user_id = user.id

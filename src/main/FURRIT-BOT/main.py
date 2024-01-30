@@ -116,7 +116,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             # Set cooldown for 15 minutes
-            # cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         if summon_type in gif_frequency and times_called_dict[summon_type] % gif_frequency[summon_type] == 0:
             await context.bot.send_animation(
@@ -124,7 +124,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_to_message_id=update.message.message_id,
                 animation=gifs[summon_type]
             )
-            # cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         return
 

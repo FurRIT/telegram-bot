@@ -27,7 +27,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await auto_awoo(update, context)
-        await summons(update, context, vore_count)
+        await summons(update, context)
         add_current_members(username, user_id)
     except Exception as e:
         logging.error(e)

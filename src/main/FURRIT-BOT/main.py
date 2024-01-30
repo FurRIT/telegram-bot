@@ -20,6 +20,7 @@ frequency_dict = {
 
 vore_count = 0
 
+
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     user = message.from_user
@@ -53,6 +54,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count
     v = re.findall(r'\b[vV]+[0oO]+[rR]+[eE3]+\b', message_text)
 
     if v:
+        vore_count += 1
         # Check if a cooldown is active for this type of summon
         summon_type = "vore"
         if summon_type in cooldown_dict:
@@ -73,8 +75,6 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count
 
         # Set cooldown for 15 minutes
         cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
-
-        vore_count += 1
 
         return
 

@@ -16,15 +16,20 @@ logging.basicConfig(
 cooldown_dict = {}
 frequency_dict = {
     "vore": 3,
-    "halo": 3
+    "halo": 3,
+    "paws": 3
 }
 times_called_dict = {
     "vore": 0,
-    "halo": 0
+    "halo": 0,
+    "paws": 0
 }
+# replace with UIDS later when bot is actually in the chat
 users = {
-    "vore": ["vanawolf", "SilencedOne"],
-    "halo": ["torin_sol", "AerieFops", "Theta_13"]
+    "vore": ["vanawolf", "SilencedOne", "marukama", "xXRedDragonXx", "Scaltrox"],
+    "halo": ["torin_sol", "AerieFops", "Theta_13"],
+    "paws": ["AbbySee", "PitterPatterPuppyPaws", "metal_crow", "xXRedDragonXx", "furryWhoHappensToBePansexual",
+             "SilencedOne"]
 }
 
 
@@ -62,11 +67,21 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = re.findall(r'\b[pP]+[hH]+[Yy]+[sS]+[IiLl]+[cCkK]+[sS]\b', message_text)
     h = re.findall(r'\b[hH]+[aA@]+[LlIi]+[oO0]\b', message_text)
 
-    if v or h:
+    p_pattern_1 = r'\b[pP]+[aA@]+[wW]+[ sS]\b'
+    p_pattern_2 = r'\b[pP]+[aA@]+[wW]+[ sS]+[bB]\b'
+    p_pattern_3 = r'\b[bB]+[eE3]+[aA]+[nN]+[ sS]\b'
+
+    paw_patterns = f"{p_pattern_1}|{p_pattern_2}|{p_pattern_3}"
+
+    paw = re.findall(paw_patterns, message_text)
+
+    if v or h or paw:
         if v:
             summon_type = "vore"
         if h:
             summon_type = "halo"
+        if paw:
+            summon_type = "paws"
 
         times_called_dict[summon_type] = times_called_dict[summon_type] + 1
 

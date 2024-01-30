@@ -15,14 +15,18 @@ logging.basicConfig(
 
 cooldown_dict = {}
 frequency_dict = {
-    "vore": 3
+    "vore": 3,
+    "halo": 3
 }
 times_called_dict = {
-    "vore": 0
+    "vore": 0,
+    "halo": 0
 }
 users = {
-    "vore": ["vanawolf", "SilencedOne"]
+    "vore": ["vanawolf", "SilencedOne"],
+    "halo": ["torin_sol", "AerieFops", "Theta_13"]
 }
+
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -56,9 +60,14 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     v = re.findall(r'\b[vV]+[0oO]+[rR]+[eE3]+\b', message_text)
     p = re.findall(r'\b[pP]+[hH]+[Yy]+[sS]+[IiLl]+[cCkK]+[sS]\b', message_text)
+    h = re.findall(r'\b[hH]+[aA@]+[LlIi]+[oO0]\b', message_text)
 
-    if v:
-        summon_type = "vore"
+    if v | h:
+        if v:
+            summon_type = "vore"
+        if h:
+            summon_type = "halo"
+
         times_called_dict[summon_type] = times_called_dict[summon_type] + 1
 
         # Check if a cooldown is active for this type of summon

@@ -68,6 +68,13 @@ def get_members():
     existence = cursor.fetchall()
     return existence
 
+
+def get_member_by_user(username):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT telegram_id FROM USERS WHERE username = %s', (username,))
+
+
 def add_fine(id):
     conn = connect()
     cursor = conn.cursor()
@@ -84,7 +91,7 @@ def add_fine(id):
         return 0
 
 
-def remove_fine(amt,id):
+def remove_fine(amt, id):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
@@ -98,6 +105,7 @@ def remove_fine(amt,id):
         conn.commit()
         conn.close()
         return 0
+
 
 def get_quotes():
     conn = connect()

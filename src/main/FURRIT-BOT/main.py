@@ -4,7 +4,8 @@ import re
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, \
+    get_member_by_user
 from datetime import datetime, timedelta  # imported for /ban method
 
 logging.basicConfig(
@@ -41,7 +42,15 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return 0
+    message_text = update.message.text
+    v = re.findall(r"[v+V]+[0+o+O]+[R + r]+[e+E+3]+", message_text)
+    vana_uid = get_member_by_user("vanawolf")
+
+    if v:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"@{vana_uid} will be summoned for vore."
+        )
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):

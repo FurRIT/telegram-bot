@@ -17,9 +17,9 @@ cooldown_dict = {}
 frequency_dict = {
     "vore": 3
 }
+vore_count = 0
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    vore_count = 0
     message = update.message
     user = message.from_user
     user_id = user.id
@@ -47,7 +47,7 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE, vore_count):
+async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     v = re.findall(r"[v+V]+[0+o+O]+[R + r]+[e+E+3]+", message_text)
 

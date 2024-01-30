@@ -34,11 +34,14 @@ users = {
 
 gifs = {
     "halo": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnMzM29oc3RxemJkeW9lNnNiYmJ1cXcxYXMzdmRzMTA0OW0wbGhobSZ"
-            "lcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mez1CrHzuEzTiC55jM/giphy.gif"
+            "lcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mez1CrHzuEzTiC55jM/giphy.gif",
+    "vore": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExczFobmhmZDFyMjJmNmNibjNjYnduaDlhb3pmYTA1cmVheTB1dm01eSZl" \
+            "cD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ce5hgID5QT8IxkcjB1/giphy.gif"
 }
 
 gif_frequency = {
-    "halo": 10
+    "halo": 10,
+    "vore": 10
 }
 
 

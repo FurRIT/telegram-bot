@@ -60,7 +60,7 @@ async def piss(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if replied_message:
         original_message_id = replied_message.message_id
         await update.message.reply_text(
-            text=replied_message.from_user.username + "pissed their pants.",
+            text=replied_message.from_user.username + " pissed their pants.",
             reply_to_message_id=original_message_id)
     else:
         await context.bot.send_message(

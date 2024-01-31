@@ -99,13 +99,12 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         times_called_dict[summon_type] = times_called_dict[summon_type] + 1
 
-        # Check if a cooldown is active for this type of summon
-        # if summon_type in cooldown_dict:
-        #     current_time = datetime.now()
-        #     cooldown_end_time = cooldown_dict[summon_type]
-        #
-        #     if current_time < cooldown_end_time:
-        #         return
+        if summon_type in cooldown_dict:
+            current_time = datetime.now()
+            cooldown_end_time = cooldown_dict[summon_type]
+
+            if current_time < cooldown_end_time:
+                return
 
         if times_called_dict[summon_type] % frequency_dict[summon_type] == 0:
             random_choice = random.choice(users[summon_type])
@@ -116,7 +115,7 @@ async def summons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             # Set cooldown for 15 minutes
-            # cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
+            cooldown_dict[summon_type] = datetime.now() + timedelta(minutes=15)
 
         if summon_type in gif_frequency and times_called_dict[summon_type] % gif_frequency[summon_type] == 0:
             await context.bot.send_animation(

@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, \
-    get_member_by_user
+    get_member_by_user, rebuild_user_tables
 from datetime import datetime, timedelta, time  # imported for /ban method
 
 logging.basicConfig(
@@ -327,7 +327,8 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 quote_user_id = replied_message.from_user.id
                 quote_contents = replied_message.text
                 sender_user_id = update.message.from_user.id
-                value = add_quote_db(sender_user_id, quote_user_id, quote_contents)
+                value = add_quote_db(sender_user_id, quote_user_id, quote_contents, update.effective_chat.id,
+                                     replied_message.message_id)
                 if value == 1:
                     await context.bot.send_message(
                         chat_id=update.effective_chat.id,
@@ -350,7 +351,7 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
-
+    rebuild_user_tables()
     pan_handler = CommandHandler('pan', pan)
     pan_handler = CommandHandler('piss', piss)
     fine_handler = CommandHandler('fine', fines)

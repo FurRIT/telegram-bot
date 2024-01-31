@@ -44,15 +44,16 @@ def add_current_members(username, uid):
         return 0
 
 
-def add_quote_db(from_uid, to_uid, quote):
+def add_quote_db(from_uid, to_uid, quote, chat_id, message_id):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute("SELECT TELEGRAM_ID FROM QUOTES WHERE QUOTE = %s", (quote,))
     existence = cursor.fetchone()
 
     if not existence:
-        cursor.execute("INSERT INTO QUOTES (TELEGRAM_ID, QUOTE, ISSUED_BY_ID, DATE_ISSUED) VALUES (%s, %s, %s, %s)",
-                       (str(from_uid), quote, str(to_uid), str(datetime.date.today())))
+        cursor.execute("INSERT INTO QUOTES (CHAT_ID, MESSAGE_ID, ISSUED_BY_ID, AUTHORED_TELEGRAM_ID, DATE_ISSUED, "
+                       "QUOTE) VALUES (%s, %s, %s, %s, %s, %s)",
+                       (str(chat_id), str(message_id), str(from_uid), str(to_uid), str(datetime.date.today()), quote))
         conn.commit()
         conn.close()
         return 1

@@ -6,6 +6,6 @@ CREATE TABLE QUOTES(
     telegram_id VARCHAR(64) REFERENCES USERS(telegram_id),
     authored_telegram_id VARCHAR(64) REFERENCES USERS(telegram_id),
     date_issued VARCHAR(64),
-    quote VARCHAR(1000),
+    quote VARCHAR(5000),
     nsfw VARCHAR(1)
     );

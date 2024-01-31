@@ -47,7 +47,7 @@ def add_current_members(username, uid):
 def add_quote_db(from_uid, to_uid, quote, chat_id, message_id):
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT AUTHORED_TELEGRAM_ID FROM QUOTES WHERE QUOTE = %s", (quote,))
+    cursor.execute("SELECT TELEGRAM_ID FROM QUOTES WHERE QUOTE = %s", (quote,))
     existence = cursor.fetchone()
 
     if not existence:

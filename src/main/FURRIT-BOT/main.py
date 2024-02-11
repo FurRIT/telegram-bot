@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-from db.users import add_current_members, get_members, add_fine, remove_fine
+from db.users import add_current_members, get_members, add_fine, remove_fine, rebuild_tables
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -70,6 +70,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         #send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
+        rebuild_tables()
         #chat IDs
         #-1002082274403  second test server
 
@@ -164,6 +165,7 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
+
 
     pan_handler = CommandHandler('pan', pan)
     fine_handler = CommandHandler('fine', fines)

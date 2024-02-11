@@ -70,7 +70,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         #send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
-        rebuild_tables()
         #chat IDs
         #-1002082274403  second test server
 
@@ -162,6 +161,7 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
+    rebuild_tables()
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))

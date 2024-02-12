@@ -128,6 +128,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = 0
     message = update.message.text
+    print(message)
     substrings = message.split(";")
     for string in substrings:
         if count % 2 == 0: #id
@@ -194,7 +195,8 @@ if __name__ == '__main__':
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
     application.add_handler(get_handler)
-    application.add_handler(members_handler)
     application.add_handler(add_users)
+    application.add_handler(members_handler)
+
 
     application.run_polling()

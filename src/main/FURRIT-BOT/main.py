@@ -134,21 +134,32 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fine = '';
 
     message = update.message.text
-    add_command = message.split(" ")
-    print(add_command)
-    substrings = add_command.split(";")
-    uid = substrings[0]
-    fine = substrings[1]
+    input = message.split(" ")
+    first = 0
+    for num in input:
+        if first == 0:
+            first = 1
+            continue
+        if first == 1:
+            uid = num
+            first = 2
+            continue
+        if first == 2:
+            fine = num
+            first = 1
+            add_fines(uid,fine)
+            continue
 
-    if uid != '' and uid and fine != '' and fine:
-        add_fines(uid, fine)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"attempted to add fines to user {uid} with amount {fine}")
-    else:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="inadequate parameters to fine a custom amount")
+
+    # if uid != '' and uid and fine != '' and fine:
+    #     # add_fines(uid, fine)
+    #     await context.bot.send_message(
+    #         chat_id=update.effective_chat.id,
+    #         text=f"attempted to add fines to user {uid} with amount {fine}")
+    # else:
+    #     await context.bot.send_message(
+    #         chat_id=update.effective_chat.id,
+    #         text="inadequate parameters to fine a custom amount")
 
 
 # allows the caller to fine a user for a message

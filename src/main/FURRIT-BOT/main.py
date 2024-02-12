@@ -127,19 +127,31 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = 0
+    uid = '';
+    fine = '';
+
     message = update.message.text
     print(message)
     substrings = message.split(";")
     for string in substrings:
         if count % 2 == 0: #id
-            id = string
+            uid = string
+            print(f'id: {id}')
         elif count % 2 == 1: #fine
             fine = string
-            print(id)
-            print(fine)
-            print(count)
-            add_fines(id,fine)
+            print(f'fine: {fine}')
         count += 1
+
+    if uid != '' and uid and fine != '' and fine:
+        add_fines(uid, fine)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"attempted to add fines to user {uid} with amount {fine}")
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="inadequate parameters to fine a custom amount")
+
 
 
 

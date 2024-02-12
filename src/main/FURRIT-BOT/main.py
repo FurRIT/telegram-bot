@@ -123,7 +123,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[4] - 350))
 
 async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = 0
@@ -134,6 +134,9 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             id = string
         if count % 2 == 1: #fine
             fine = string
+            print(id)
+            print(fine)
+            print(count)
             add_fines(id,fine)
         count += 1
 

@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-from db.users import add_current_members, get_members, add_fine, remove_fine, rebuild_tables
+from db.users import add_current_members, get_members, add_fine, remove_fine, rebuild_tables, add_fines
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -125,6 +125,19 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,
                 text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
 
+async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count = 0
+    message = update.message.text
+    substrings = message.split(";")
+    for string in substrings:
+        if count % 2 == 0: #id
+            id = string
+        if count % 2 == 1: #fine
+            fine = string
+            add_fines(id,fine)
+        count += 1
+
+
 
 # allows the caller to fine a user for a message
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -171,6 +184,7 @@ if __name__ == '__main__':
     fine_handler = CommandHandler('fine', fines)
     remove_fine_handler = CommandHandler('unfine', Rfine)
     get_handler = CommandHandler('get', get_all_members)
+    add_users = CommandHandler('add', add_users_fines)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
 
     application.add_handler(pan_handler)
@@ -178,5 +192,6 @@ if __name__ == '__main__':
     application.add_handler(remove_fine_handler)
     application.add_handler(get_handler)
     application.add_handler(members_handler)
+    application.add_handler(add_users)
 
     application.run_polling()

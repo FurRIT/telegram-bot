@@ -46,14 +46,14 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-#reads through all messages sent and looks for awoo to fine the person
+# reads through all messages sent and looks for awoo to fine the person
 # also currently houses the @admin function
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text0 = update.message.text
     logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+",text0)
-    call = re.findall("@admin",text0)
-    logging.info(t) #idk wtf this does but it doesnt work without it
+    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
+    call = re.findall("@admin", text0)
+    logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
         for x in members:
@@ -61,19 +61,20 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,x[4] + 350)
-                    #text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
+                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(
+                        update.message.from_user.first_name, x[4] + 350)
+                    # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
                 )
-    if call: #if @admin was called
-        #forwad message to admin chat
-        #forward the message that had @admin
-        #send a message saying the user that requested the @admin
+    if call:  # if @admin was called
+        # forwad message to admin chat
+        # forward the message that had @admin
+        # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
-        #chat IDs
-        #-1002082274403  second test server
+        # chat IDs
+        # -1002082274403  second test server
 
-        CID = -1002082274403 #the current chat id in use by the bot for a destination, change as needed
+        CID = -1002082274403  # the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
                 chat_id=CID,
@@ -82,7 +83,8 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=CID,
 
-                text="Attention requested in '{}' by {}".format(update.message.chat.title,update.message.from_user.first_name))
+                text="Attention requested in '{}' by {}".format(update.message.chat.title,
+                                                                update.message.from_user.first_name))
             await context.bot.forward_message(
                 chat_id=CID,
                 from_chat_id=replied_message.chat_id,
@@ -119,11 +121,12 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         index += 1
     members = get_members()
     for x in members:
-        if str(user) == str(x[1]): #if the user is in the chat
+        if str(user) == str(x[1]):  # if the user is in the chat
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[4] - 350))
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user, user, x[4] - 350))
+
 
 async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = 0
@@ -131,15 +134,10 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fine = '';
 
     message = update.message.text
-    print(message)
     add_cmd = message.split("\n")
-    print(f"add_cmd: {add_cmd}")
     substrings = add_cmd[1].split(" ")
     uid = substrings[0]
     fine = substrings[1]
-
-    print(f"uid: {uid}")
-    print(f"fine: {fine}")
 
     if uid != '' and uid and fine != '' and fine:
         add_fines(uid, fine)
@@ -150,8 +148,6 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="inadequate parameters to fine a custom amount")
-
-
 
 
 # allows the caller to fine a user for a message
@@ -165,10 +161,11 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for x in members:
             if int(replied_message.from_user.id) == int(x[0]):
                 add_fine(x[0])
-                #await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
+                # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
 
-                await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(replied_message.from_user.first_name,
-                                                                               x[4] + 350), reply_to_message_id=original_message_id)
+                await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(
+                    replied_message.from_user.first_name,
+                    x[4] + 350), reply_to_message_id=original_message_id)
 
     else:
         await context.bot.send_message(
@@ -177,10 +174,9 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-
-#used to grab a list of all members
-#CADEN DO NOT DELETE
-#IT IS USED BY MOST OF THE FUNCTIONS
+# used to grab a list of all members
+# CADEN DO NOT DELETE
+# IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -189,11 +185,10 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    #rebuild_tables()
+    # rebuild_tables()
     application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
-
 
     pan_handler = CommandHandler('pan', pan)
     fine_handler = CommandHandler('fine', fines)
@@ -208,6 +203,5 @@ if __name__ == '__main__':
     application.add_handler(get_handler)
     application.add_handler(add_users)
     application.add_handler(members_handler)
-
 
     application.run_polling()

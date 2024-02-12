@@ -134,21 +134,24 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fine = '';
 
     message = update.message.text
-    input = message.split(" ")
-    first = 0
-    for num in input:
-        if first == 0:
-            first = 1
+    message = message.split("\n")
+    f = 0
+    for command in message:
+        if f == 0:
+            f = 1
             continue
-        if first == 1:
-            uid = num
-            first = 2
-            continue
-        if first == 2:
-            fine = num
-            first = 1
-            add_fines(uid,fine)
-            continue
+        input = message.split(" ")
+        first = 1
+        for num in input:
+            if first == 1:
+                uid = num
+                first = 2
+                continue
+            if first == 2:
+                fine = num
+                first = 1
+                add_fines(uid,fine)
+                continue
 
 
     # if uid != '' and uid and fine != '' and fine:

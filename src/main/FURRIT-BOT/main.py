@@ -133,7 +133,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for string in substrings:
         if count % 2 == 0: #id
             id = string
-        if count % 2 == 1: #fine
+        elif count % 2 == 1: #fine
             fine = string
             print(id)
             print(fine)

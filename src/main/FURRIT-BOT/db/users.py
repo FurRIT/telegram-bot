@@ -38,7 +38,7 @@ def add_fines(id,fine):
     cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
     existence = cursor.fetchone()
     if existence:
-        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + {} WHERE TELEGRAM_ID = '{}'".format(int(fine), str(id)))
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + %s WHERE TELEGRAM_ID = '%s'".format(int(fine), str(id)))
         conn.commit()
         conn.close()
         return 1

@@ -132,7 +132,8 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message = update.message.text
     print(message)
-    substrings = message.split(" ")
+    substrings = message.split("")
+    print(f"substrings: {substrings}")
     uid = substrings[1]
     fine = substrings[2]
 

@@ -134,9 +134,10 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     fine = '';
 
     message = update.message.text
-    substrings = message.split(" ")
-    uid = substrings[1]
-    fine = substrings[2]
+    add_command = message.split(" ")
+    substrings = add_command.split(";")
+    uid = substrings[0]
+    fine = substrings[1]
 
     if uid != '' and uid and fine != '' and fine:
         add_fines(uid, fine)

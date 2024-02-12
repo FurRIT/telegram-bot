@@ -140,7 +140,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if f == 0:
             f = 1
             continue
-        input = message.split(" ")
+        input = command.split(" ")
         first = 1
         for num in input:
             if first == 1:

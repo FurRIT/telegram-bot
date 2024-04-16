@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
 from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine
-from datetime import datetime, timedelta #imported for /ban method
+from datetime import datetime, timedelta  # imported for /ban method
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -14,6 +14,13 @@ logging.basicConfig(
 
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    If a new user speaks in chat, they are added to the database.
+    Waits for 'awoo' to be sent in the chat.
+    :param update:
+    :param context:
+    :return:
+    """
     message = update.message
     user = message.from_user
     user_id = user.id
@@ -27,6 +34,20 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Pan awaits a trigger for its command.  It checks the replied message.
+    If a user replies to themself, they are not allowed to pan themself.
+    If a user replies to the bot, they are not allowed to pan the bot.
+    If there is no replied message, the bot warns the user that there must be a replied message.
+
+    If the replied message check is successful, then it grabs the FURRIT_PAN sticker pack and
+    sends a random sticker from that set in reply to the message replied to by the user.
+
+    author: Caden
+    :param update:
+    :param context:
+    :return:
+    """
     replied_message = update.message.reply_to_message
 
     if replied_message:
@@ -57,36 +78,50 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You need to reply to a message to pan."
         )
 
-'''
+
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Ban is currently unfinished, as far as I'm aware.
+    Times out a user for 5 minutes.
+    author: Theta
+    :param update:
+    :param context:
+    :return:
+    """
     replied_message = update.message.reply_to_message
 
     if replied_message:
         if replied_message.from_user == update.message.from_user:
             await context.bot.send_message(chat_id=update.effective_chat.id, text="You can't ban yourself.")
             return
-        # TODO: or if replying user is not an admin then message : "not allowed to ban"
-        # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
+            # TODO: or if replying user is not an admin then message : "not allowed to ban"
+            # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Unauthorized to ban.")
             return
         else:
-            #actual banning of the user
+            # actual banning of the user
             await context.bot.ban_chat_member(
-                chat_id=update.effective_chat.id, # chat
-                user_id=replied_message.from_user.id, # origional message
-                until_date=(datetime.now() + timedelta(minutes = 5)), # need to decide how long to ban for
-                revoke_messages=False) # need to decide if messages they send will be visible
+                chat_id=update.effective_chat.id,  # chat
+                user_id=replied_message.from_user.id,  # origional message
+                until_date=(datetime.now() + timedelta(minutes=5)),  # need to decide how long to ban for
+                revoke_messages=False)  # need to decide if messages they send will be visible
             return
-'''
 
-#reads through all messages sent and looks for awoo to fine the person
-# also currently houses the @admin function
+
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A service that goes through a message sent and looks for 'awoo'.
+    Also apparently houses the @admin function (needs to be taken out and made into its own service)
+    author: Torin
+    :param update:
+    :param context:
+    :return:
+    """
     text0 = update.message.text
     logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+",text0)
-    call = re.findall("@admin",text0)
-    logging.info(t) #idk wtf this does but it doesnt work without it
+    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
+    call = re.findall("@admin", text0)
+    logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
         for x in members:
@@ -94,29 +129,34 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-                                                                                    x[2] + 350)
+                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(
+                        update.message.from_user.first_name,
+                        x[2] + 350)
                 )
     if call:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="test")
-        #forwad message to admin chat
-        #forward the message that had @admin
-        #send a message saying the user that requested the @admin
+        # forwad message to admin chat
+        # forward the message that had @admin
+        # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
 
         context.bot.forward_message(
             chat_id=update.effective_message.chat_id,
             from_chat_id=update.effective_message.chat_id,
-            message_id=replied_message.message_id,)
+            message_id=replied_message.message_id, )
 
 
-# removes a single fine from a user
-# should allow the caller to specify the amt removed, also need to
-#   change so that you call it using the @ of a user.
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Removes a single fine from a user.  Can specify amount removed.
+    author: Torin
+    :param update:
+    :param context:
+    :return:
+    """
     # if a message was replied to
     replied_message = update.message.reply_to_message
     if replied_message:
@@ -143,15 +183,21 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         index += 1
     members = get_members()
     for x in members:
-        if str(user) == str(x[1]): #if the user is in the chat
+        if str(user) == str(x[1]):  # if the user is in the chat
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user,user,x[2] - 350))
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user, user, x[2] - 350))
 
 
-# allows the caller to fine a user for a message
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Command to fine a user by replying to their message.
+    author: Torin
+    :param update:
+    :param context:
+    :return:
+    """
     replied_message = update.message.reply_to_message
     if replied_message:
         original_message_id = replied_message.message_id
@@ -162,8 +208,10 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if int(update.message.from_user.id) == int(x[0]):
                 add_fine(x[0])
 
-        await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-                                                                           x[2] + 350), reply_to_message_id=original_message_id)
+        await update.message.reply_text(
+            text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
+                                                                             x[2] + 350),
+            reply_to_message_id=original_message_id)
 
     else:
         await context.bot.send_message(
@@ -172,11 +220,14 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-
-#used to grab a list of all members
-#CADEN DO NOT DELETE
-#IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A test command (will not be deployed) that gets the list of the members in the database.
+    author: Caden
+    :param update:
+    :param context:
+    :return:
+    """
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=get_members()[1][2]
@@ -184,6 +235,13 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A test command (will not be deployed) that gets the list of all the quotes in the database.
+    author: Caden
+    :param update:
+    :param context:
+    :return:
+    """
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=get_quotes()
@@ -191,8 +249,16 @@ async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Add a message to the quotes database.
+    Cannot quote yourself or the bot.
+    author: Caden
+    :param update:
+    :param context:
+    :return:
+    """
     replied_message = update.message.reply_to_message
-    # Need to create a base case for quotes that are too long
+    # TODO: Need to create a base case for quotes that are too long
     try:
         if replied_message:
             if replied_message.from_user == update.message.from_user:

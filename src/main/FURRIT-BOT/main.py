@@ -4,8 +4,9 @@ import re
 
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, rebuild_tables, add_fines
 from datetime import datetime, timedelta  # imported for /ban method
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -79,6 +80,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
@@ -108,6 +110,8 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
 
+# reads through all messages sent and looks for awoo to fine the person
+# also currently houses the @admin function
 async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A service that goes through a message sent and looks for 'awoo'.
@@ -130,23 +134,43 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(
-                        update.message.from_user.first_name,
-                        x[2] + 350)
+
+#                         update.message.from_user.first_name, x[4] + 350)
+                    # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
+                        update.message.from_user.first_name,x[2] + 350)
                 )
-    if call:
+    if call:# if @admin was called
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="test")
+
         # forwad message to admin chat
         # forward the message that had @admin
         # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
+        # chat IDs
+        # -1002082274403  second test server
 
-        context.bot.forward_message(
-            chat_id=update.effective_message.chat_id,
-            from_chat_id=update.effective_message.chat_id,
-            message_id=replied_message.message_id, )
+        CID = -1002082274403  # the current chat id in use by the bot for a destination, change as needed
+        if replied_message:
+            await context.bot.forward_message(
+                chat_id=CID,
+                from_chat_id=replied_message.chat_id,
+                message_id=replied_message.message_id, )
+            await context.bot.send_message(
+                chat_id=CID,
+                text="Attention requested in '{}' by {}".format(update.message.chat.title, update.message.from_user.first_name))
+            await context.bot.forward_message(
+                chat_id=CID,
+                from_chat_id=replied_message.chat_id,
+                message_id=update.message.message_id, )
+
+#         context.bot.forward_message(
+#             chat_id=update.effective_message.chat_id,
+#             from_chat_id=update.effective_message.chat_id,
+#             message_id=replied_message.message_id, )
+
 
 
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -187,7 +211,45 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             remove_fine(350, x[0])
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user, user, x[2] - 350))
+                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(user, user, x[4] - 350))
+
+
+async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count = 0
+    uid = '';
+    fine = '';
+
+    message = update.message.text
+    message = message.split("\n")
+    f = 0
+    for command in message:
+        if f == 0:
+            f = 1
+            continue
+        input = command.split(" ")
+        first = 1
+        for num in input:
+            if first == 1:
+                uid = num
+                first = 2
+                continue
+            if first == 2:
+                fine = num
+                first = 1
+                add_fines(uid,fine)
+                continue
+
+
+    # if uid != '' and uid and fine != '' and fine:
+    #     # add_fines(uid, fine)
+    #     await context.bot.send_message(
+    #         chat_id=update.effective_chat.id,
+    #         text=f"attempted to add fines to user {uid} with amount {fine}")
+    # else:
+    #     await context.bot.send_message(
+    #         chat_id=update.effective_chat.id,
+    #         text="inadequate parameters to fine a custom amount")
+
 
 
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -205,13 +267,18 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         members = get_members()
         for x in members:
-            if int(update.message.from_user.id) == int(x[0]):
+            if int(replied_message.from_user.id) == int(x[0]):
                 add_fine(x[0])
+                # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
+                await update.message.reply_text(text="Fining " + user + " $350\n\n{}'s current fines ${}".format(
+                    replied_message.from_user.first_name,
+                    x[4] + 350), reply_to_message_id=original_message_id)
 
-        await update.message.reply_text(
-            text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-                                                                             x[2] + 350),
-            reply_to_message_id=original_message_id)
+#         await update.message.reply_text(
+#             text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
+#                                                                              x[2] + 350),
+#             reply_to_message_id=original_message_id)
+
 
     else:
         await context.bot.send_message(
@@ -220,6 +287,9 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+# used to grab a list of all members
+# CADEN DO NOT DELETE
+# IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A test command (will not be deployed) that gets the list of the members in the database.
@@ -299,7 +369,10 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('6569990634:AAEJ2MLYy-ByCOjHbqzzfFyIbUvqi5zDUcU').build()
+    # rebuild_tables()
+    
+    #I removed the token, its in our dms caden
+    application = ApplicationBuilder().token('Token goes here').build()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
 
@@ -307,6 +380,7 @@ if __name__ == '__main__':
     fine_handler = CommandHandler('fine', fines)
     remove_fine_handler = CommandHandler('unfine', Rfine)
     get_handler = CommandHandler('get', get_all_members)
+    add_users = CommandHandler('add', add_users_fines)
     get_quote_handler = CommandHandler('get_quotes', get_all_quotes)
     add_quote_handler = CommandHandler('add_quote', add_quote)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
@@ -315,6 +389,7 @@ if __name__ == '__main__':
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
     application.add_handler(get_handler)
+    application.add_handler(add_users)
     application.add_handler(get_quote_handler)
     application.add_handler(add_quote_handler)
     application.add_handler(members_handler)

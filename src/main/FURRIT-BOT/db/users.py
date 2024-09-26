@@ -1,4 +1,5 @@
 # oh god
+import logging
 import datetime
 
 from .db_utils import *
@@ -68,13 +69,29 @@ def get_members():
     existence = cursor.fetchall()
     return existence
 
+def add_fines(uid,fine):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(uid),))
+    logging.info(fine)
+    existence = cursor.fetchone()
+    if existence:
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + %s WHERE TELEGRAM_ID = %s", (int(fine), str(uid),))
+        conn.commit()
+        conn.close()
+        return 1
+    else:
+        conn.commit()
+        conn.close()
+        return 0
+
 def add_fine(id):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute("SELECT AWOO_FINE FROM USERS WHERE TELEGRAM_ID = %s", (str(id),))
     existence = cursor.fetchone()
     if existence:
-        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + {} WHERE TELEGRAM_ID = '{}'".format(350, str(id)))
+        cursor.execute("UPDATE USERS SET AWOO_FINE = AWOO_FINE + %s WHERE TELEGRAM_ID = %s", (350, str(id),))
         conn.commit()
         conn.close()
         return 1

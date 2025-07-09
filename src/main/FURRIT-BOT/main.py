@@ -2,16 +2,27 @@ import logging
 import random
 import re
 
-from telegram import Update
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
+from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackContext, MessageHandler, filters
-from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, rebuild_tables, add_fines
+from db.users import add_current_members, get_members, add_pan_count, add_quote_db, get_quotes, add_fine, remove_fine, rebuild_user_tables, add_fines
 from datetime import datetime, timedelta  # imported for /ban method
 
+
+"""
+Chat IDs:
+Main: -1001037004907
+Primary test server: -1002047567846
+
+"""
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
 
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -26,10 +37,12 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = message.from_user
     user_id = user.id
     username = user.username
+    fname = user.first_name
+    lname = user.last_name
 
     try:
         await auto_awoo(update, context)
-        add_current_members(username, user_id)
+        add_current_members(username, user_id,fname,lname)
     except Exception as e:
         logging.error(e)
 
@@ -82,8 +95,10 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: links += "\n the links + any other info abt it"
-    links = "Links:"
-    links += "\n There are none"
+    links = "**Links:**"
+    links += """Greater Rochester Area Resources
+ • Rochester Furs (https://t.me/RochesterFurs) — Group for all local area furries
+ • Rochester Furs Events Channel (https://t.me/RochesterFurryEvents)"""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=links
@@ -92,8 +107,15 @@ async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: chan += "\n the channel + any other info abt it"
-    chan = "Furrit Channels:"
-    chan += "\n There are none"
+    chan = "**Furrit Channels:**"
+    chan += """FurRIT-Exclusive Resources
+ • FurRIT Telegram Folder (https://t.me/addlist/gy2K43K2_tBjOWFh) — All FurRIT Chats and Channels
+ • ROOVille (https://t.me/+5-hPmg8gUd40MWNh) — NSFW art-sharing chat (admin approval required)
+ • FurRIT After Dark (https://t.me/+u5NuEZcx3npmZDI5) — NSFW adult chat (admin approval required)
+ • FurRIT Discord (https://discord.gg/kS4rryY)
+ 
+ 
+ __Use /channels_sfw and /channels_nsfw to get a list of outside channels and chats run by FurRIT members.__"""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=chan
@@ -102,22 +124,58 @@ async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def print_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: rule += "\n the rule + any other info abt it"
-    rules = "Furrit Rules:"
-    rules += "\n There are none, go wild"
+    rules = " **Furrit Rules:** "
+    rules += """
+• FurRIT is for people who identify as members of the Furry Fandom
+• Group Chat is 18+
+• This community is a safe place for everyone of all genders, sexualities, races, etc.
+• Messaging that solicits or elicits sexual arousal should not be shared (keep that in NSFW chats)
+  > Forbidden content includes: moderate-heavy flirting, irl NSFW stories/content, porn, and kinks
+  > Permitted content includes: suggestive furry memes (no genitals), jokes, and non-sexual adult topics (e.g. swearing, alcohol, violence)
+Don't be horny in Main
+Reply to any message with @admin {optional note} to flag it for attention.
+
+
+ **Membership Policy** (must satisfy at least one of the following):
+• Current RIT Students
+• Alumni
+• Staff
+• Faculty
+• Accepted to RIT
+• Significant Other/Spouse of Member"""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=rules
     )
 
-async def print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def sfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #Formating of manually adding a chat to this list:
     #Make a new line and type: chat += "\n the chat + any other info abt it"
-    chat = "IDK, there arent any others"
-    chat += "\n find some"
+    chat = """SFW Affiliated Chats and Channels
+Run by FurRIT members rather than the Admin Team. Subject to their own rules.
+
+Azu (http://t.me/azu_shorttail)
+ • Infurmation Technology — Get help with code and complain about technology
+Vanawolf (http://t.me/vanawolf)
+ • I Vana See Cuteness (https://t.me/VanaCute) — Only the cutest, most adorable SFW content
+ • I Vana Appreciate (https://t.me/VanaAppreciate) — Creative, skillfull, thought provoking, mind expanding, calming, good
+Xoren (http://t.me/MrHyperCube)
+ • Xoren's Stream Studio (https://t.me/XorenMoonbeam) — Announcements from your local streaming Physics Folf!"""
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=chat
     )
+
+async def nsfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        # Formating of manually adding a chat to this list:
+        # Make a new line and type: chat += "\n the chat + any other info abt it"
+        chat = """"""
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=chat
+        )
+
+
 async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a command to this list:
     # Make a new line and type: command += "\n the command + any other info abt it"
@@ -184,6 +242,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+
     text0 = update.message.text
     logging.info(text0)
     t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
@@ -196,11 +255,11 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text="Don't Awoo! - $350 fine!\n\n{}'s current fines ${}".format(
+                    text=f"Don't Awoo! - $350 fine!\n\n{update.message.from_user.first_name}'s current fines ${x[4] + 350}"
 
 #                         update.message.from_user.first_name, x[4] + 350)
                     # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
-                        update.message.from_user.first_name,x[2] + 350)
+
                 )
     if call:# if @admin was called
         await context.bot.send_message(
@@ -252,7 +311,10 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             text="forgiving a $350 fine from " + replied_message.from_user.username,
             reply_to_message_id=replied_message.message_id)
+        return
 
+    #idk if this actually works yet, so imma just skip it with a return
+    return
     # if no message was replied to
     message = update.message.text
     user = ""
@@ -278,6 +340,10 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    The code to manually add fines to a User
+    Author: Torin
+    """
     count = 0
     uid = '';
     fine = '';
@@ -386,6 +452,7 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Add a message to the quotes database.
     Cannot quote yourself or the bot.
     author: Caden
+    Modified by: Torin
     :param update:
     :param context:
     :return:
@@ -430,12 +497,44 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=f"Failed. {e}"
         )
 
+CID = -1001037004907
+async def daily_e(bot: Bot):
+    await bot.send_message(chat_id=CID, text="e")
+
+async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 if __name__ == '__main__':
     # rebuild_tables()
-    
+
+
     #I removed the token, its in our dms caden
-    application = ApplicationBuilder().token('Token goes here').build()
+    BOT_TOKEN = '7649059783:AAGsNWx5iwlmTGtlaJWGwDGu_krpBJfmBZs'
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=6, minute=21),  # Set desired time here (e.g., 9:00 AM)
+        args=[application.bot]  # Pass bot context
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=9, minute=21),  # Set desired time here (e.g., 9:00 AM)
+        args=[application.bot]  # Pass bot context
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=18, minute=21),  # Set desired time here (e.g., 9:00 AM)
+        args=[application.bot]  # Pass bot context
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=21, minute=21),  # Set desired time here (e.g., 9:00 AM)
+        args=[application.bot]  # Pass bot context
+    )
+    scheduler.start()
 
     # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
 
@@ -445,7 +544,7 @@ if __name__ == '__main__':
     get_handler = CommandHandler('get', get_all_members)
     add_users = CommandHandler('add', add_users_fines)
     get_quote_handler = CommandHandler('get_quotes', get_all_quotes)
-    add_quote_handler = CommandHandler('add_quote', add_quote)
+    add_quote_handler = CommandHandler('quote', add_quote)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
 
     application.add_handler(pan_handler)
@@ -455,10 +554,12 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("awoo",autoAwoo))
 
     application.add_handler(CommandHandler("commands", print_commands))
-    application.add_handler(CommandHandler("chats", print_chats))
+    application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))
+    application.add_handler(CommandHandler("channels_nsfw", nsfw_print_chats))
     application.add_handler(CommandHandler("rules", print_rules))
-    application.add_handler(CommandHandler("channels", print_c))
+    application.add_handler(CommandHandler("chats", print_c))
     application.add_handler(CommandHandler("links", print_links))
+    application.add_handler(CommandHandler('getc', get_chat_id))
 
     application.add_handler(get_handler)
     application.add_handler(add_users)

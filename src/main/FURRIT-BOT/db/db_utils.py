@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import sys
 from asyncio.log import logger
 from pathlib import Path
@@ -12,17 +13,22 @@ import urllib.parse as urlparse
 
 
 def connect():
-    DATABASE_URL = os.environ['DATABASE_URL']
+    # DATABASE_URL = os.environ['DATABASE_URL']
 
-    result = urlparse.urlparse(DATABASE_URL)
+    # result = urlparse.urlparse(DATABASE_URL)
+    con = sqlite3.connect("FurritDB.db")
+    return con
 
-    return psycopg2.connect(
-        dbname=result.path[1:],
-        user=result.username,
-        password=result.password,
-        host=result.hostname,
-        port=result.port
-    )
+
+
+
+    # return psycopg2.connect(
+    #     dbname=result.path[1:],
+    #     user=result.username,
+    #     password=result.password,
+    #     host=result.hostname,
+    #     port=result.port
+    # )
 
 def exec_sql_file(path):
     full_path = path

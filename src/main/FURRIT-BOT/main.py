@@ -510,7 +510,7 @@ if __name__ == '__main__':
 
 
     #I removed the token, its in our dms caden
-    BOT_TOKEN = '7649059783:AAGsNWx5iwlmTGtlaJWGwDGu_krpBJfmBZs'
+    BOT_TOKEN = 'fff'
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

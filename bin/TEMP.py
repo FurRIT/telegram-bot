@@ -6,7 +6,7 @@ def connect():
     # DATABASE_URL = os.environ['DATABASE_URL']
 
     # result = urlparse.urlparse(DATABASE_URL)
-    con = sqlite3.connect("FurritDB.db")
+    con = sqlite3.connect("../data/FurritDB.db")
     return con
 
 conn = connect()
@@ -30,7 +30,7 @@ cursor = conn.cursor()
 #         print(row)
 
 
-with open('Quotes.csv', 'r', encoding='utf-8') as file:
+with open('../data/Quotes.csv', 'r', encoding='utf-8') as file:
     reader = csv.reader(file, delimiter=';')
     # print(reader)
     for row in reader:

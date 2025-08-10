@@ -19,9 +19,6 @@ def connect():
     con = sqlite3.connect("../data/FurritDB.db")
     return con
 
-
-
-
     # return psycopg2.connect(
     #     dbname=result.path[1:],
     #     user=result.username,
@@ -30,11 +27,12 @@ def connect():
     #     port=result.port
     # )
 
+
 def exec_sql_file(path):
     full_path = path
     conn = connect()
     cur = conn.cursor()
-    with open(full_path, 'r') as file:
+    with open(full_path, "r") as file:
         cur.execute(file.read())
     conn.commit()
     conn.close()
@@ -58,6 +56,7 @@ def exec_get_all(sql, args={}):
     list_of_tuples = cur.fetchall()
     conn.close()
     return list_of_tuples
+
 
 def exec_commit(sql, args={}):
     conn = connect()

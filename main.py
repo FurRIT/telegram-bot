@@ -517,7 +517,7 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
 
     RAW_CID = os.environ["CID"]
-    CID = -(int(RAW_CID))
+    CID = int(RAW_CID)
 
     BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()

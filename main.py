@@ -1,3 +1,7 @@
+"""
+FurRIT Telegram Bot.
+"""
+
 import re
 import random
 import logging
@@ -27,13 +31,6 @@ from db.users import (
     add_fines,
 )
 
-
-"""
-Chat IDs:
-Main: -1001037004907
-Primary test server: -1002047567846
-
-"""
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO

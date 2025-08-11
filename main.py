@@ -3,10 +3,12 @@ FurRIT Telegram Bot.
 """
 
 import re
+import os
 import random
 import logging
 from datetime import datetime, timedelta  # imported for /ban method
 
+import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -275,12 +277,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
-        # chat IDs
-        # -1002082274403  second test server
-
-        CID = (
-            -1002082274403
-        )  # the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
                 chat_id=CID,
@@ -506,9 +502,6 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-CID = -1001037004907
-
-
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
@@ -521,8 +514,12 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     # rebuild_tables()
 
-    # I removed the token, its in our dms caden
-    BOT_TOKEN = "fff"
+    dotenv.load_dotenv()
+
+    RAW_CID = os.environ["CID"]
+    CID = -(int(RAW_CID))
+
+    BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

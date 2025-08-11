@@ -1,6 +1,7 @@
-import logging
-import random
 import re
+import random
+import logging
+from datetime import datetime, timedelta  # imported for /ban method
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -25,7 +26,6 @@ from db.users import (
     rebuild_user_tables,
     add_fines,
 )
-from datetime import datetime, timedelta  # imported for /ban method
 
 
 """

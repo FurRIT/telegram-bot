@@ -2,12 +2,14 @@ import sqlite3
 import csv
 from main import *
 
+
 def connect():
     # DATABASE_URL = os.environ['DATABASE_URL']
 
     # result = urlparse.urlparse(DATABASE_URL)
     con = sqlite3.connect("../data/FurritDB.db")
     return con
+
 
 conn = connect()
 cursor = conn.cursor()
@@ -30,8 +32,8 @@ cursor = conn.cursor()
 #         print(row)
 
 
-with open('../data/Quotes.csv', 'r', encoding='utf-8') as file:
-    reader = csv.reader(file, delimiter=';')
+with open("../data/Quotes.csv", "r", encoding="utf-8") as file:
+    reader = csv.reader(file, delimiter=";")
     # print(reader)
     for row in reader:
         print(row)
@@ -46,9 +48,12 @@ with open('../data/Quotes.csv', 'r', encoding='utf-8') as file:
         # cursor.execute(f"""INSERT INTO quotes (Quote_Author,quote,date_issued,issued_by_id,Chat_ID,NSFW)
         #                 VALUES ({authoredBy},{text},{date},{quotedBy},{chatId},{nsfw})""")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO quotes (Quote_Author, quote, date_issued, issued_by_id, Chat_ID, NSFW)
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (authoredBy, text, date, quotedBy, chatId, nsfw))
+        """,
+            (authoredBy, text, date, quotedBy, chatId, nsfw),
+        )
 
         conn.commit()

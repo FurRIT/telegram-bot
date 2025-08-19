@@ -1,59 +1,66 @@
-import sqlite3
+#!/usr/bin/env python3
+"""
+Insert Quotes from a CSV.
+"""
+
+import os
 import csv
-from main import *
+import sqlite3
+import argparse
+
+BIN_ROOT = os.path.dirname(__file__)
+DATA_ROOT = os.path.relpath(os.path.join(BIN_ROOT, "..", "data"))
+
+DEFAULT_DB_PATH = os.path.join(DATA_ROOT, "FurritDB.db")
+DEFAULT_QUOTES_PATH = os.path.join(DATA_ROOT, "Quotes.csv")
 
 
-def connect():
-    # DATABASE_URL = os.environ['DATABASE_URL']
+def main() -> None:
+    """
+    Parse Arguments; Insert Quotes.
+    """
 
-    # result = urlparse.urlparse(DATABASE_URL)
-    con = sqlite3.connect("../data/FurritDB.db")
-    return con
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-s",
+        "--sqlite",
+        help="sqlite file path (default %(default)s)",
+        default=DEFAULT_DB_PATH,
+    )
+    parser.add_argument(
+        "-q",
+        "--quotes",
+        help="quotes file path (default %(default)s)",
+        default=DEFAULT_QUOTES_PATH,
+    )
+    args = parser.parse_args()
+
+    connection = sqlite3.connect(args.sqlite)
+    cursor = connection.cursor()
+
+    with open(args.quotes, "r", encoding="utf-8") as file:
+        reader = csv.reader(file, delimiter=";")
+
+        for row in reader:
+            print(row)
+            text = row[0]
+            chat_id = row[1]
+            _message_id = row[2]
+            authored_by = row[3]
+            quoted_by = row[4]
+            date = str(row[5])
+            nsfw = row[6]
+
+            cursor.execute(
+                """
+                INSERT INTO quotes (Quote_Author, quote, date_issued, issued_by_id, Chat_ID, NSFW)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (authored_by, text, date, quoted_by, chat_id, nsfw),
+            )
+
+    connection.commit()
 
 
-conn = connect()
-cursor = conn.cursor()
-# with open('AwooFines.csv', 'r') as file:
-#     reader = csv.reader(file, delimiter=',')
-#     for row in reader:
-#         fine = row[0]
-#         ID = row[1]
-#         username = row[2]
-#         fname = row[3]
-#         lname = row[4]
-#
-#         add_current_members(username, ID, fname, lname)
-#
-#         cursor.execute(f"""UPDATE USERS
-#                             SET  awoo_fine = {fine}
-#                             WHERE telegram_id = {ID}""")
-#         conn.commit()
-#
-#         print(row)
-
-
-with open("../data/Quotes.csv", "r", encoding="utf-8") as file:
-    reader = csv.reader(file, delimiter=";")
-    # print(reader)
-    for row in reader:
-        print(row)
-        text = row[0]
-        chatId = row[1]
-        messageId = row[2]
-        authoredBy = row[3]
-        quotedBy = row[4]
-        date = str(row[5])
-        nsfw = row[6]
-
-        # cursor.execute(f"""INSERT INTO quotes (Quote_Author,quote,date_issued,issued_by_id,Chat_ID,NSFW)
-        #                 VALUES ({authoredBy},{text},{date},{quotedBy},{chatId},{nsfw})""")
-
-        cursor.execute(
-            """
-            INSERT INTO quotes (Quote_Author, quote, date_issued, issued_by_id, Chat_ID, NSFW)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            (authoredBy, text, date, quotedBy, chatId, nsfw),
-        )
-
-        conn.commit()
+if __name__ == "__main__":
+    main()

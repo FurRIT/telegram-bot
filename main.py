@@ -402,7 +402,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :return:
     """
 
-    if not is_valid_command(update, "ban: "):
+    if not is_valid_command(update, "Rfine: "):
         return
     
     assert update.message is not None
@@ -413,6 +413,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if replied_message:
         assert replied_message.from_user is not None
         id = replied_message.from_user.id
+        # TODO: or if replying user is not an admin then message : "not allowed to unfine"
         remove_fine(350, id)
         await update.message.reply_text(
             text=f"forgiving a $350 fine from {replied_message.from_user.username or replied_message.from_user.first_name or 'Unknown User'}",
@@ -458,7 +459,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = ""
     fine = ""
 
-    if not is_valid_command(update, "auto_awoo: "):
+    if not is_valid_command(update, "add_users_fines: "):
         return
     
     assert update.message is not None
@@ -486,7 +487,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 continue
 
 
-async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def fine_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Command to fine a user by replying to their message.
     author: Torin
@@ -495,7 +496,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :return:
     """
 
-    if not is_valid_command(update, "fines: "):
+    if not is_valid_command(update, "fine_member: "):
         return
     
     assert update.message is not None
@@ -507,6 +508,14 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         original_message_id = replied_message.message_id
         user = replied_message.from_user.username
 
+        if user == context.bot.username:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text="You can't fine the bot."
+            )
+            return
+        
+        # TODO: or if replying user is not an admin then message : "not allowed to fine"
+        
         user_str = user if user is not None else replied_message.from_user.first_name or "Unknown User"
 
         members = get_members()
@@ -675,7 +684,7 @@ if __name__ == "__main__":
         application.job_queue.run_daily(daily_e, time=time(21, 21))
 
         pan_handler = CommandHandler("pan", pan)
-        fine_handler = CommandHandler("fine", fines)
+        fine_handler = CommandHandler("fine", fine_member)
         remove_fine_handler = CommandHandler("unfine", Rfine)
         barn_handler = CommandHandler("barn", barn_command)
         get_handler = CommandHandler("get", get_all_members)

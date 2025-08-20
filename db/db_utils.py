@@ -16,7 +16,8 @@ def connect():
     # DATABASE_URL = os.environ['DATABASE_URL']
 
     # result = urlparse.urlparse(DATABASE_URL)
-    con = sqlite3.connect("../data/FurritDB.db")
+    # con = sqlite3.connect("../data/FurritDB.db")
+    con = sqlite3.connect("data/FurritDB.db")
     return con
 
     # return psycopg2.connect(

@@ -34,6 +34,14 @@ from db.users import (
 )
 
 
+"""
+Chat IDs:
+Main: -1001037004907
+Primary test server: -1002047567846
+Admin chat: -1001168121589
+
+"""
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -76,7 +84,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
+    replied_message = update.message
 
     if replied_message:
         if replied_message.from_user == update.message.from_user:
@@ -247,6 +255,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A service that goes through a message sent and looks for 'awoo'.
     Also apparently houses the @admin function (needs to be taken out and made into its own service)
+    Also houses the vore function
     author: Torin
     :param update:
     :param context:
@@ -257,6 +266,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.info(text0)
     t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
     call = re.findall("@admin", text0)
+    vore = re.findall(r"[V+v]+[O+o+0]+[R+r]+[E+e+3]+[S+s+z+Z]*", text0)
     logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
@@ -270,13 +280,19 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
                 )
     if call:  # if @admin was called
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="test")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Contacting the admin team")
 
         # forwad message to admin chat
         # forward the message that had @admin
         # send a message saying the user that requested the @admin
 
         replied_message = update.message.reply_to_message
+        # chat IDs
+        # -1002082274403  second test server
+
+        CID = (
+            -1001168121589
+        )  # the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
                 chat_id=CID,
@@ -294,6 +310,20 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id,
             )
+    if vore: #if someone says vore
+
+
+        original_message_id = update.message.message_id
+        sticker_pack_name = "FJZGIF"
+        # sticker_pack_name = "FURRIT_PAN"
+        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
+        stickers_in_set = sticker_set.stickers
+        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
+        random_sticker_id = random.choice(sticker_ids)
+        await update.message.reply_sticker(
+            sticker=random_sticker_id, reply_to_message_id=original_message_id
+        )
+
 
 
 #         context.bot.forward_message(
@@ -510,6 +540,25 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
 
+async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    replied_message = update.message.reply_to_message
+
+    if replied_message:
+        original_message_id = replied_message.message_id
+        sticker_pack_name = "furrit_barn"
+        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
+        stickers_in_set = sticker_set.stickers
+        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
+        random_sticker_id = random.choice(sticker_ids)
+        await update.message.reply_sticker(
+            sticker=random_sticker_id, reply_to_message_id=original_message_id
+        )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="You need to reply to a message to pan.",
+        )
+
 
 if __name__ == "__main__":
     # rebuild_tables()
@@ -549,15 +598,17 @@ if __name__ == "__main__":
     pan_handler = CommandHandler("pan", pan)
     fine_handler = CommandHandler("fine", fines)
     remove_fine_handler = CommandHandler("unfine", Rfine)
+    barn_handler = CommandHandler("barn", barn_command)
     get_handler = CommandHandler("get", get_all_members)
     add_users = CommandHandler("add", add_users_fines)
     get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
     add_quote_handler = CommandHandler("quote", add_quote)
-    members_handler = MessageHandler(filters.Chat, handle_messages)
+    members_handler = MessageHandler(filters.CHAT, handle_messages)
 
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
+    application.add_handler(barn_handler)
 
     application.add_handler(CommandHandler("awoo", autoAwoo))
 

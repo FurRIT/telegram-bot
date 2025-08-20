@@ -2,11 +2,12 @@
 FurRIT Telegram Bot.
 """
 
+from email import message
 import re
 import os
 import random
 import logging
-from datetime import datetime, timedelta  # imported for /ban method
+from datetime import datetime, timedelta, time  # imported for /ban method and scheduling
 
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -45,6 +46,14 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+def is_valid_command(update: Update, log_prefix: str = "") -> bool:
+    if not update.message or not update.message.from_user:
+        logging.error(f"{log_prefix}Command message not found.")
+        return False
+    if not update.effective_chat or not update.effective_chat.id:
+        logging.error(f"{log_prefix}Effective chat not found.")
+        return False
+    return True
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -54,8 +63,16 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+
+    if not is_valid_command(update, "handle_messages: "):
+        return
+
     message = update.message
+
+    assert message is not None
     user = message.from_user
+
+    assert user is not None
     user_id = user.id
     username = user.username
     fname = user.first_name
@@ -83,40 +100,63 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
+    if not is_valid_command(update, "pan: "):
+        return
+    
+    original_msg = update.message
+
+    assert original_msg is not None
+    assert update.message is not None
+    assert update.effective_chat is not None
+    
+    if not original_msg.from_user or not original_msg:
+        logging.error("Command message not found.")
+        return
+
+    if not original_msg.reply_to_message:
+        if update.effective_chat is not None:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan yourself."
+                chat_id=update.effective_chat.id, text="You need to reply to a message to pan."
             )
-            return
-        if replied_message.from_user.id == context.bot.id:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan the bot."
-            )
-            return
         else:
-            original_message_id = replied_message.message_id
-            sticker_pack_name = "FURRIT_PAN"
-            sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-            stickers_in_set = sticker_set.stickers
-            sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-            random_sticker_id = random.choice(sticker_ids)
-            add_pan_count(replied_message.from_user.id)
-            await update.message.reply_sticker(
-                sticker=random_sticker_id, reply_to_message_id=original_message_id
-            )
-    else:
+            logging.error("effective_chat is None, cannot send message.")
+        return
+    elif original_msg.from_user == original_msg.reply_to_message.from_user:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="You need to reply to a message to pan.",
+            chat_id=update.effective_chat.id, text="You can't pan yourself."
+        )
+        return
+    elif (
+        original_msg.reply_to_message.from_user is not None
+        and original_msg.reply_to_message.from_user.id == context.bot.id
+    ):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="You can't pan the bot."
+        )
+        return
+    else:
+        original_message_id = original_msg.message_id
+        sticker_pack_name = "FURRIT_PAN"
+        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
+        stickers_in_set = sticker_set.stickers
+        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
+        random_sticker_id = random.choice(sticker_ids)
+        add_pan_count(original_msg.from_user.id)
+        await update.message.reply_sticker(
+            sticker=random_sticker_id, reply_to_message_id=original_message_id
         )
 
 
 async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: links += "\n the links + any other info abt it"
+
+    if not is_valid_command(update, "print_links: "):
+        return
+    assert update.effective_chat is not None
+
+
     links = "**Links:**"
     links += """Greater Rochester Area Resources
  • Rochester Furs (https://t.me/RochesterFurs) — Group for all local area furries
@@ -136,6 +176,10 @@ async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
  
  
  __Use /channels_sfw and /channels_nsfw to get a list of outside channels and chats run by FurRIT members.__"""
+    if not is_valid_command(update, "chan: "):
+        return
+    assert update.effective_chat is not None
+
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chan)
 
 
@@ -161,6 +205,10 @@ Reply to any message with @admin {optional note} to flag it for attention.
 • Faculty
 • Accepted to RIT
 • Significant Other/Spouse of Member"""
+    if not is_valid_command(update, "rules: "):
+        return
+    assert update.effective_chat is not None
+
     await context.bot.send_message(chat_id=update.effective_chat.id, text=rules)
 
 
@@ -177,6 +225,10 @@ Vanawolf (http://t.me/vanawolf)
  • I Vana Appreciate (https://t.me/VanaAppreciate) — Creative, skillfull, thought provoking, mind expanding, calming, good
 Xoren (http://t.me/MrHyperCube)
  • Xoren's Stream Studio (https://t.me/XorenMoonbeam) — Announcements from your local streaming Physics Folf!"""
+    
+    if not is_valid_command(update, "sfw_print_chats: "):
+        return
+    assert update.effective_chat is not None
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
 
 
@@ -184,6 +236,9 @@ async def nsfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a chat to this list:
     # Make a new line and type: chat += "\n the chat + any other info abt it"
     chat = """"""
+    if not is_valid_command(update, "nsfw_print_chats: "):
+        return
+    assert update.effective_chat is not None
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
 
 
@@ -194,6 +249,9 @@ async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     commands += "\n /chats : lists all Furrit chats\n/commands : lists the commands for this bot"
     commands += "\n /rules : Lists all the current rules of furrit\n/channels : lists furrit channels"
     commands += "\n /links : Lists links to furrit channels, chats, sites, etc"
+    if not is_valid_command(update, "print_commands: "):
+        return
+    assert update.effective_chat is not None
     await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
 
 
@@ -206,10 +264,32 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
+    if not is_valid_command(update, "ban: "):
+        return
+    
+
+    original_msg = update.message
+
+    assert update.message is not None
+    assert original_msg is not None
+    assert update.effective_chat is not None
+
+    if not original_msg.from_user or not original_msg:
+        logging.error("Replied message not found.")
+        return
+
+    if not original_msg.reply_to_message or not original_msg.from_user.id:
+        if update.effective_chat is not None:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text="You need to reply to a message to ban."
+            )
+        else:
+            logging.error("effective_chat is None, cannot send message.")
+        return
+    
+    else:
+        if original_msg.from_user == update.message.from_user:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="You can't ban yourself."
             )
@@ -224,7 +304,7 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # actual banning of the user
             await context.bot.ban_chat_member(
                 chat_id=update.effective_chat.id,  # chat
-                user_id=replied_message.from_user.id,  # origional message
+                user_id=original_msg.from_user.id,  # origional message
                 until_date=(
                         datetime.now() + timedelta(minutes=5)
                 ),  # need to decide how long to ban for
@@ -246,11 +326,18 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :return:
     """
 
-    text0 = update.message.text
-    logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
-    call = re.findall("@admin", text0)
-    vore = re.findall(r"[V+v]+[O+o+0]+[R+r]+[E+e+3]+[S+s+z+Z]*", text0)
+    if not is_valid_command(update, "auto_awoo: "):
+        return
+    
+    assert update.message is not None
+    assert update.message.from_user is not None
+    assert update.effective_chat is not None
+
+    message_text = update.message.text or ""
+    logging.info(message_text)
+    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", message_text)
+    call = re.findall("@admin", message_text)
+    vore = re.findall(r"[V+v]+[O+o+0]+[R+r]+[E+e+3]+[S+s+z+Z]*", message_text)
     logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:
@@ -314,13 +401,21 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+
+    if not is_valid_command(update, "ban: "):
+        return
+    
+    assert update.message is not None
+    assert update.effective_chat is not None
+    
     # if a message was replied to
     replied_message = update.message.reply_to_message
     if replied_message:
+        assert replied_message.from_user is not None
         id = replied_message.from_user.id
         remove_fine(350, id)
         await update.message.reply_text(
-            text="forgiving a $350 fine from " + replied_message.from_user.username,
+            text=f"forgiving a $350 fine from {replied_message.from_user.username or replied_message.from_user.first_name or 'Unknown User'}",
             reply_to_message_id=replied_message.message_id,
         )
         return
@@ -363,7 +458,14 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = ""
     fine = ""
 
-    message = update.message.text
+    if not is_valid_command(update, "auto_awoo: "):
+        return
+    
+    assert update.message is not None
+    assert update.message.from_user is not None
+    assert update.effective_chat is not None
+
+    message = update.message.text or ""
     message = message.split("\n")
     f = 0
     for command in message:
@@ -392,10 +494,20 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+
+    if not is_valid_command(update, "fines: "):
+        return
+    
+    assert update.message is not None
+    assert update.effective_chat is not None
+
     replied_message = update.message.reply_to_message
     if replied_message:
+        assert replied_message.from_user is not None
         original_message_id = replied_message.message_id
         user = replied_message.from_user.username
+
+        user_str = user if user is not None else replied_message.from_user.first_name or "Unknown User"
 
         members = get_members()
         for x in members:
@@ -403,7 +515,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fine(x[0])
                 await update.message.reply_text(
                     text="Fining "
-                         + user
+                         + user_str
                          + " $350\n\n{}'s current fines ${}".format(
                         replied_message.from_user.first_name, x[4] + 350
                     ),
@@ -424,6 +536,11 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+    if not is_valid_command(update, "get_all_members: "):
+        return
+    
+    assert update.effective_chat is not None
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=get_members()[1][2]
     )
@@ -437,7 +554,10 @@ async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=get_quotes())
+    if not is_valid_command(update, "get_all_quotes: "):
+        return
+    assert update.effective_chat is not None
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="\n".join(map(str, get_quotes())))
 
 
 async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -450,10 +570,17 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
+    if not is_valid_command(update, "fines: "):
+        return
+    
+    assert update.message is not None
+    assert update.effective_chat is not None
+    assert update.message.from_user is not None
+
     replied_message = update.message.reply_to_message
-    # TODO: Need to create a base case for quotes that are too long
     try:
         if replied_message:
+            assert replied_message.from_user is not None
             if replied_message.from_user == update.message.from_user:
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text="You can't quote yourself."
@@ -492,13 +619,24 @@ async def daily_e(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_valid_command(update, "fines: "):
+        return
+    assert update.message is not None
+    assert update.effective_chat is not None
+
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 
 async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    replied_message = update.message.reply_to_message
+    if not is_valid_command(update, "fines: "):
+        return
+    
+    assert update.message is not None
+    assert update.effective_chat is not None
+    assert update.message.from_user is not None
 
+    replied_message = update.message.reply_to_message
     if replied_message:
         original_message_id = replied_message.message_id
         sticker_pack_name = "furrit_barn"
@@ -525,43 +663,45 @@ if __name__ == "__main__":
     BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    scheduler = AsyncIOScheduler()
-    application.job_queue.run_daily(daily_e, time=datetime.time(hour=6, minute=21))
+    if application is not None:
+        assert application.job_queue is not None
+        scheduler = AsyncIOScheduler()
+        application.job_queue.run_daily(daily_e, time=time(6, 21))
 
-    application.job_queue.run_daily(daily_e, time=datetime.time(hour=9, minute=21))
+        application.job_queue.run_daily(daily_e, time=time(9, 21))
 
-    application.job_queue.run_daily(daily_e, time=datetime.time(hour=18, minute=21))
+        application.job_queue.run_daily(daily_e, time=time(18, 21))
 
-    application.job_queue.run_daily(daily_e, time=datetime.time(hour=21, minute=21))
+        application.job_queue.run_daily(daily_e, time=time(21, 21))
 
-    pan_handler = CommandHandler("pan", pan)
-    fine_handler = CommandHandler("fine", fines)
-    remove_fine_handler = CommandHandler("unfine", Rfine)
-    barn_handler = CommandHandler("barn", barn_command)
-    get_handler = CommandHandler("get", get_all_members)
-    add_users = CommandHandler("add", add_users_fines)
-    get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
-    add_quote_handler = CommandHandler("quote", add_quote)
-    members_handler = MessageHandler(filters.CHAT, handle_messages)
+        pan_handler = CommandHandler("pan", pan)
+        fine_handler = CommandHandler("fine", fines)
+        remove_fine_handler = CommandHandler("unfine", Rfine)
+        barn_handler = CommandHandler("barn", barn_command)
+        get_handler = CommandHandler("get", get_all_members)
+        add_users = CommandHandler("add", add_users_fines)
+        get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
+        add_quote_handler = CommandHandler("quote", add_quote)
+        members_handler = MessageHandler(filters.ALL, handle_messages)
 
-    application.add_handler(pan_handler)
-    application.add_handler(fine_handler)
-    application.add_handler(remove_fine_handler)
-    application.add_handler(barn_handler)
+        application.add_handler(pan_handler)
+        application.add_handler(fine_handler)
+        application.add_handler(remove_fine_handler)
+        application.add_handler(barn_handler)
 
-    application.add_handler(CommandHandler("commands", print_commands))
-    application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))
-    application.add_handler(CommandHandler("channels_nsfw", nsfw_print_chats))
-    application.add_handler(CommandHandler("rules", print_rules))
-    application.add_handler(CommandHandler("chats", print_c))
-    application.add_handler(CommandHandler("links", print_links))
-    application.add_handler(CommandHandler("getc", get_chat_id))
+        application.add_handler(CommandHandler("commands", print_commands))
+        application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))
+        application.add_handler(CommandHandler("channels_nsfw", nsfw_print_chats))
+        application.add_handler(CommandHandler("rules", print_rules))
+        application.add_handler(CommandHandler("chats", print_c))
+        application.add_handler(CommandHandler("links", print_links))
+        application.add_handler(CommandHandler("getc", get_chat_id))
 
-    application.add_handler(get_handler)
-    application.add_handler(add_users)
-    application.add_handler(get_quote_handler)
-    application.add_handler(add_quote_handler)
-    application.add_handler(members_handler)
+        application.add_handler(get_handler)
+        application.add_handler(add_users)
+        application.add_handler(get_quote_handler)
+        application.add_handler(add_quote_handler)
+        application.add_handler(members_handler)
 
-    application.run_polling()
-    scheduler.start()
+        application.run_polling()
+        scheduler.start()

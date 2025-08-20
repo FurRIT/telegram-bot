@@ -412,6 +412,12 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
     if replied_message:
         assert replied_message.from_user is not None
+        if replied_message.from_user.username == context.bot.username:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text="You can't fine the bot."
+            )
+            return
+        
         id = replied_message.from_user.id
         # TODO: or if replying user is not an admin then message : "not allowed to unfine"
         remove_fine(350, id)

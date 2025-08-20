@@ -304,7 +304,7 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id,
             )
-    if vore:
+    if vore: #if someone says vore
 
 
         original_message_id = update.message.message_id

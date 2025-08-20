@@ -292,23 +292,20 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # chat IDs
         # -1002082274403  second test server
 
-        CID = (
-            -1001168121589
-        )  # the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=replied_message.message_id,
             )
             await context.bot.send_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 text="Attention requested in '{}' by {}".format(
                     update.message.chat.title, update.message.from_user.first_name
                 ),
             )
             await context.bot.forward_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id,
             )
@@ -568,6 +565,9 @@ if __name__ == "__main__":
 
     RAW_CID = os.environ["CID"]
     CID = int(RAW_CID)
+
+    RAW_ADMIN_CID = os.environ["ADMIN_CID"]
+    ADMIN_CID = int(RAW_ADMIN_CID)
 
     BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()

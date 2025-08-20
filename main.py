@@ -3,14 +3,15 @@ import random
 import re
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
-from telegram import Update, Bot
+from telegram import Update
+
+print(Update)
+
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
-    CallbackContext,
     MessageHandler,
     filters,
 )
@@ -27,7 +28,6 @@ from db.users import (
 )
 from datetime import datetime, timedelta  # imported for /ban method
 
-
 """
 Chat IDs:
 Main: -1001037004907
@@ -35,6 +35,8 @@ Primary test server: -1002047567846
 Admin chat: -1001168121589
 
 """
+
+CID = -1001037004907
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -192,21 +194,6 @@ async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
 
 
-async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
-    # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
-    count = await context.bot.get_chat_member_count(update.effective_chat.id)
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(
-        count, admins[0].user.username, admins[1].user.username
-    )
-    text1 = admins[0].user.username + admins[1].user.username
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-
-
-#     print(admins) #remove /TODO
-
-
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
@@ -236,7 +223,7 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=update.effective_chat.id,  # chat
                 user_id=replied_message.from_user.id,  # origional message
                 until_date=(
-                    datetime.now() + timedelta(minutes=5)
+                        datetime.now() + timedelta(minutes=5)
                 ),  # need to decide how long to ban for
                 revoke_messages=False,
             )  # need to decide if messages they send will be visible
@@ -304,12 +291,9 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id,
             )
-    if vore: #if someone says vore
-
-
+    if vore:  # if someone says vore
         original_message_id = update.message.message_id
         sticker_pack_name = "FJZGIF"
-        # sticker_pack_name = "FURRIT_PAN"
         sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
         stickers_in_set = sticker_set.stickers
         sticker_ids = [sticker.file_id for sticker in stickers_in_set]
@@ -317,13 +301,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_sticker(
             sticker=random_sticker_id, reply_to_message_id=original_message_id
         )
-
-
-
-#         context.bot.forward_message(
-#             chat_id=update.effective_message.chat_id,
-#             from_chat_id=update.effective_message.chat_id,
-#             message_id=replied_message.message_id, )
 
 
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -403,16 +380,6 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 add_fines(uid, fine)
                 continue
 
-    # if uid != '' and uid and fine != '' and fine:
-    #     # add_fines(uid, fine)
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text=f"attempted to add fines to user {uid} with amount {fine}")
-    # else:
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text="inadequate parameters to fine a custom amount")
-
 
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -431,20 +398,14 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for x in members:
             if int(replied_message.from_user.id) == int(x[0]):
                 add_fine(x[0])
-                # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
                 await update.message.reply_text(
                     text="Fining "
-                    + user
-                    + " $350\n\n{}'s current fines ${}".format(
+                         + user
+                         + " $350\n\n{}'s current fines ${}".format(
                         replied_message.from_user.first_name, x[4] + 350
                     ),
                     reply_to_message_id=original_message_id,
                 )
-
-    #         await update.message.reply_text(
-    #             text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-    #                                                                              x[2] + 350),
-    #             reply_to_message_id=original_message_id)
 
     else:
         await context.bot.send_message(
@@ -452,9 +413,6 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# used to grab a list of all members
-# CADEN DO NOT DELETE
-# IT IS USED BY MOST OF THE FUNCTIONS
 async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A test command (will not be deployed) that gets the list of the members in the database.
@@ -526,16 +484,14 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-CID = -1001037004907
-
-
-async def daily_e(bot: Bot):
-    await bot.send_message(chat_id=CID, text="e")
+async def daily_e(context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=CID, text="e")
 
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
+
 
 async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
@@ -558,35 +514,18 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
-    # rebuild_tables()
-
     # Ask Torin/sol for the token
     BOT_TOKEN = "token"
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=6, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=9, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=18, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=21, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
+    application.job_queue.run_daily(daily_e, time=datetime.time(hour=6, minute=21))
 
-    # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
+    application.job_queue.run_daily(daily_e, time=datetime.time(hour=9, minute=21))
+
+    application.job_queue.run_daily(daily_e, time=datetime.time(hour=18, minute=21))
+
+    application.job_queue.run_daily(daily_e, time=datetime.time(hour=21, minute=21))
 
     pan_handler = CommandHandler("pan", pan)
     fine_handler = CommandHandler("fine", fines)
@@ -602,8 +541,6 @@ if __name__ == "__main__":
     application.add_handler(fine_handler)
     application.add_handler(remove_fine_handler)
     application.add_handler(barn_handler)
-
-    application.add_handler(CommandHandler("awoo", autoAwoo))
 
     application.add_handler(CommandHandler("commands", print_commands))
     application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))

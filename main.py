@@ -560,8 +560,8 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     # rebuild_tables()
 
-    # I removed the token, its in our dms caden
-    BOT_TOKEN = "7649059783:AAGE16D6x-s-DWg93mPOT32q3jXL6NtMlcM"
+    # Ask Torin/sol for the token
+    BOT_TOKEN = "token"
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

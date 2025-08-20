@@ -1,7 +1,14 @@
-import logging
-import random
-import re
+"""
+FurRIT Telegram Bot.
+"""
 
+import re
+import os
+import random
+import logging
+from datetime import datetime, timedelta  # imported for /ban method
+
+import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -25,7 +32,6 @@ from db.users import (
     rebuild_user_tables,
     add_fines,
 )
-from datetime import datetime, timedelta  # imported for /ban method
 
 
 """
@@ -274,7 +280,9 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
                 )
     if call:  # if @admin was called
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Contacting the admin team")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="Contacting the admin team"
+        )
 
         # forwad message to admin chat
         # forward the message that had @admin
@@ -284,28 +292,24 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # chat IDs
         # -1002082274403  second test server
 
-        CID = (
-            -1001168121589
-        )  # the current chat id in use by the bot for a destination, change as needed
         if replied_message:
             await context.bot.forward_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=replied_message.message_id,
             )
             await context.bot.send_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 text="Attention requested in '{}' by {}".format(
                     update.message.chat.title, update.message.from_user.first_name
                 ),
             )
             await context.bot.forward_message(
-                chat_id=CID,
+                chat_id=ADMIN_CID,
                 from_chat_id=replied_message.chat_id,
                 message_id=update.message.message_id,
             )
-    if vore: #if someone says vore
-
+    if vore:  # if someone says vore
 
         original_message_id = update.message.message_id
         sticker_pack_name = "FJZGIF"
@@ -317,7 +321,6 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_sticker(
             sticker=random_sticker_id, reply_to_message_id=original_message_id
         )
-
 
 
 #         context.bot.forward_message(
@@ -526,9 +529,6 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-CID = -1001037004907
-
-
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
@@ -536,6 +536,7 @@ async def daily_e(bot: Bot):
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
+
 
 async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
@@ -560,8 +561,15 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     # rebuild_tables()
 
-    # Ask Torin/sol for the token
-    BOT_TOKEN = "token"
+    dotenv.load_dotenv()
+
+    RAW_CID = os.environ["CID"]
+    CID = int(RAW_CID)
+
+    RAW_ADMIN_CID = os.environ["ADMIN_CID"]
+    ADMIN_CID = int(RAW_ADMIN_CID)
+
+    BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

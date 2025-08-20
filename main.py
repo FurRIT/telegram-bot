@@ -1,12 +1,17 @@
-import logging
-import random
-import re
+"""
+FurRIT Telegram Bot.
+"""
 
+import re
+import os
+import random
+import logging
+from datetime import datetime, timedelta  # imported for /ban method
+
+import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram import Update
-
-print(Update)
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -26,7 +31,6 @@ from db.users import (
     rebuild_user_tables,
     add_fines,
 )
-from datetime import datetime, timedelta  # imported for /ban method
 
 """
 Chat IDs:
@@ -514,8 +518,12 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
-    # Ask Torin/sol for the token
-    BOT_TOKEN = "token"
+    dotenv.load_dotenv()
+
+    RAW_CID = os.environ["CID"]
+    CID = int(RAW_CID)
+
+    BOT_TOKEN = os.environ["BOT_TOKEN"]
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

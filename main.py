@@ -414,7 +414,7 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         assert replied_message.from_user is not None
         if replied_message.from_user.username == context.bot.username:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't fine the bot."
+                chat_id=update.effective_chat.id, text="You can't unfine the bot."
             )
             return
         

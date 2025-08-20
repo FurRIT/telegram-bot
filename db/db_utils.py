@@ -1,16 +1,4 @@
-import os
 import sqlite3
-import sys
-from asyncio.log import logger
-from pathlib import Path
-
-import psycopg2
-import yaml
-
-import os
-import psycopg2
-import urllib.parse as urlparse
-
 
 def connect():
     # DATABASE_URL = os.environ['DATABASE_URL']

@@ -23,8 +23,10 @@ def exec_sql_file(path: str) -> None:
     """
     conn = connect()
     cur = conn.cursor()
-    with open(full_path, "r") as file:
+
+    with open(path, "r", encoding="utf-8") as file:
         cur.execute(file.read())
+
     conn.commit()
     conn.close()
 

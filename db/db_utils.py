@@ -6,7 +6,7 @@ import os
 import sqlite3
 
 DB_MODULE_ROOT = os.path.dirname(__file__)
-SQLITE_DB_PATH = os.path.join(DB_MODULE_ROOT, "..", "data")
+SQLITE_DB_PATH = os.path.join(DB_MODULE_ROOT, "..", "data", "FurritDB.db")
 
 
 def connect() -> sqlite3.Connection:

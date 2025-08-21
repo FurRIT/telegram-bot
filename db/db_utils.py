@@ -17,8 +17,10 @@ def connect() -> sqlite3.Connection:
     return con
 
 
-def exec_sql_file(path):
-    full_path = path
+def exec_sql_file(path: str) -> None:
+    """
+    Read and execute an SQL file.
+    """
     conn = connect()
     cur = conn.cursor()
     with open(full_path, "r") as file:

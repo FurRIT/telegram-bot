@@ -9,9 +9,13 @@ DB_MODULE_ROOT = os.path.dirname(__file__)
 SQLITE_DB_PATH = os.path.join(DB_MODULE_ROOT, "..", "data")
 
 
-def connect():
+def connect() -> sqlite3.Connection:
+    """
+    Connect to the SQlite Datbase.
+    """
     con = sqlite3.connect(SQLITE_DB_PATH)
     return con
+
 
 def exec_sql_file(path):
     full_path = path

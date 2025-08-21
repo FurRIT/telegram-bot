@@ -6,21 +6,8 @@ import sqlite3
 
 
 def connect():
-    # DATABASE_URL = os.environ['DATABASE_URL']
-
-    # result = urlparse.urlparse(DATABASE_URL)
-    # con = sqlite3.connect("../data/FurritDB.db")
     con = sqlite3.connect("data/FurritDB.db")
     return con
-
-    # return psycopg2.connect(
-    #     dbname=result.path[1:],
-    #     user=result.username,
-    #     password=result.password,
-    #     host=result.hostname,
-    #     port=result.port
-    # )
-
 
 def exec_sql_file(path):
     full_path = path

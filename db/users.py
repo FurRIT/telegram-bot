@@ -122,7 +122,7 @@ def get_members():
     return res
 
 
-def add_fines(tg_id: int, fine: int) -> bool:
+def do_fine_user(tg_id: int, amount: int) -> int | None:
     """
     Add a fine amount to a User.
     """
@@ -130,18 +130,18 @@ def add_fines(tg_id: int, fine: int) -> bool:
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT fines FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is None:
         cur.close()
         con.close()
-        return False
+        return None
 
     cur.execute(
-        "UPDATE USERS SET n_awoo = n_awoo + ? WHERE tg_id = ?",
+        "UPDATE USERS SET fines = fines + ? WHERE tg_id = ?",
         (
-            fine,
+            amount,
             tg_id,
         ),
     )
@@ -150,7 +150,9 @@ def add_fines(tg_id: int, fine: int) -> bool:
     cur.close()
     con.close()
 
-    return True
+    fines = res[0]
+
+    return fines + amount
 
 
 def incr_fine_awoo(tg_id: int) -> int | None:

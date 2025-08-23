@@ -27,7 +27,7 @@ from db.users import (
     get_quotes,
     incr_fine_awoo,
     remove_fine,
-    add_fines,
+    do_fine_user,
     AWOO_FINE_COST,
 )
 
@@ -456,7 +456,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if first == 2:
                 fine = num
                 first = 1
-                add_fines(uid, fine)
+                do_fine_user(uid, fine)
                 continue
 
     # if uid != '' and uid and fine != '' and fine:
@@ -470,6 +470,9 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #         text="inadequate parameters to fine a custom amount")
 
 
+MANUAL_FINE_COST = 350
+
+
 async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Command to fine a user by replying to their message.
@@ -478,34 +481,32 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
-    if replied_message:
-        original_message_id = replied_message.message_id
-        user = replied_message.from_user.username
+    message = update.message
+    assert message is not None
 
-        members = get_members()
-        for x in members:
-            if int(replied_message.from_user.id) == int(x[0]):
-                incr_fine_awoo(x[0])
-                # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
-                await update.message.reply_text(
-                    text="Fining "
-                    + user
-                    + " $350\n\n{}'s current fines ${}".format(
-                        replied_message.from_user.first_name, x[4] + 350
-                    ),
-                    reply_to_message_id=original_message_id,
-                )
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
-    #         await update.message.reply_text(
-    #             text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-    #                                                                              x[2] + 350),
-    #             reply_to_message_id=original_message_id)
-
-    else:
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="No user selected to fine"
+            chat_id=effective_chat.id, text="No user selected to fine"
         )
+        return
+
+    user_to_fine = reply_to_message.from_user
+    assert user_to_fine is not None
+
+    c_fines = do_fine_user(user_to_fine.id, MANUAL_FINE_COST)
+    assert c_fines is not None
+
+    incr_fine_awoo(user_to_fine.id)
+    await message.reply_text(
+        text=f"""Fining ${user_to_fine.full_name} ${MANUAL_FINE_COST}!
+
+{user_to_fine.full_name}'s current fines ${c_fines}""",
+        reply_to_message_id=reply_to_message.message_id,
+    )
 
 
 # used to grab a list of all members

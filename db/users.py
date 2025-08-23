@@ -13,6 +13,10 @@ DB_MODULE_ROOT = os.path.dirname(__file__)
 SCHEMA_PATH = os.path.join(DB_MODULE_ROOT, "schema.sql")
 
 
+# XXX(mwp): the cost of a single awoo in terms of a user-displayed value in $USD
+N_AWOO_COST = 350
+
+
 def rebuild_tables() -> None:
     """
     Rebuild all Datbase Tables.
@@ -149,30 +153,28 @@ def add_fines(tg_id: int, fine: int) -> bool:
     return True
 
 
-def add_fine(tg_id: int) -> bool:
+def incr_awoo(tg_id: int) -> int | None:
     """
     Add a fine of 350 to a User.
     """
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT n_awoo FROM USERS WHERE n_awoo = ?", (tg_id,))
+    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is None:
         cur.close()
         con.close()
-        return False
+        return None
 
-    cur.execute(
-        "UPDATE USERS SET n_awoo = n_awoo + 1 WHERE tg_id = ?", (tg_id,)
-    )
+    cur.execute("UPDATE USERS SET n_awoo = n_awoo + 1 WHERE tg_id = ?", (tg_id,))
 
     con.commit()
     cur.close()
     con.close()
 
-    return True
+    return res[0] + 1
 
 
 def remove_fine(amt: int, tg_id: int) -> bool:
@@ -189,9 +191,7 @@ def remove_fine(amt: int, tg_id: int) -> bool:
         con.close()
         return False
 
-    cur.execute(
-        "UPDATE USERS SET n_awoo = n_awoo - ? WHERE tg_id = ?", (amt, tg_id)
-    )
+    cur.execute("UPDATE USERS SET n_awoo = n_awoo - ? WHERE tg_id = ?", (amt, tg_id))
 
     con.commit()
     cur.close()

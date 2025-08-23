@@ -184,17 +184,17 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
     fname = user.first_name
     lname = user.last_name
 
+    try:
+        add_current_members(username, user_id, fname, lname)
+    except Exception as e:
+        logging.error(e)
+
     # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
     # is triggered; 'fun' stuff shouldn't trigger during admin summons
     at_admined = await search_handle_at_admin(update, context)
     if not at_admined:
         await search_handle_awoo(update, context)
         await search_handle_vore(update, context)
-
-    try:
-        add_current_members(username, user_id, fname, lname)
-    except Exception as e:
-        logging.error(e)
 
 
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):

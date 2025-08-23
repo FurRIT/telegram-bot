@@ -570,7 +570,7 @@ if __name__ == "__main__":
     # rebuild_tables()
 
     # Ask Torin/sol for the token
-    BOT_TOKEN = "7649059783:AAGfAPD6nlvrrzwIceUzbGWJAXXov-8halY"
+    BOT_TOKEN = "TOKEN"
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     scheduler = AsyncIOScheduler()

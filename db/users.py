@@ -2,7 +2,7 @@
 import logging
 import datetime
 
-from .db_utils import *
+from db.utils import connect, exec_sql_file
 
 
 def rebuild_user_tables():

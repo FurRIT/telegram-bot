@@ -604,7 +604,7 @@ if __name__ == "__main__":
     add_users = CommandHandler("add", add_users_fines)
     get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
     add_quote_handler = CommandHandler("quote", add_quote)
-    members_handler = MessageHandler(filters.CHAT, handle_messages)
+    members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_messages)
 
     application.add_handler(pan_handler)
     application.add_handler(fine_handler)

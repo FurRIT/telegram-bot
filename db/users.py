@@ -23,6 +23,11 @@ def rebuild_tables() -> None:
 
 
 def add_update_tg_user(user: telegram.User) -> None:
+    """
+    Add the Telegram user if they are not already registered.
+
+    If the Telegram user is registered, update their details in the database.
+    """
     con = connect()
     cur = con.cursor()
 

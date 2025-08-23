@@ -189,6 +189,15 @@ async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     commands += "\n /chats : lists all Furrit chats\n/commands : lists the commands for this bot"
     commands += "\n /rules : Lists all the current rules of furrit\n/channels : lists furrit channels"
     commands += "\n /links : Lists links to furrit channels, chats, sites, etc"
+    commands = "\n /fine : For admins only, will fine a person"
+    commands = "\n /unfine : For admins only, will remove a fine from a person"
+    commands = "\n /pan : Will pan a person you reply to"
+    commands = "\n /channels_sfw"
+    commands = "\n /channels_nsfw"
+    commands = "\n /quote : quotes a message from a user"
+    commands = "\n /add_quote : does the same as /quote"
+    commands = "\n /get_quotes : gets a quote from a user"
+
     await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
 
 
@@ -596,6 +605,7 @@ if __name__ == "__main__":
     add_users = CommandHandler("add", add_users_fines)
     get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
     add_quote_handler = CommandHandler("quote", add_quote)
+    add_quote_handler2 = CommandHandler("addquote", add_quote)
     members_handler = MessageHandler(filters.CHAT, handle_messages)
 
     application.add_handler(pan_handler)

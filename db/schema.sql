@@ -19,5 +19,5 @@ CREATE TABLE QUOTES(
     sent_msg        INTEGER NOT NULL,
     added_by        INTEGER REFERENCES USERS(id) NOT NULL,
     added_at        INTEGER NOT NULL,
-    quote           VARCHAR(256) NOT NULL,
+    quote           VARCHAR(256) NOT NULL
 );

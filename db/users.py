@@ -58,7 +58,7 @@ def add_pan_count(tg_id: int) -> None:
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT pan_count FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT n_pan FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is None:
@@ -66,10 +66,10 @@ def add_pan_count(tg_id: int) -> None:
         con.close()
         return
 
-    pan_count = res[0]
-    pan_count += 1
+    n_pan = res[0]
+    n_pan += 1
 
-    cur.execute("UPDATE USERS SET pan_count = ? WHERE tg_id = ?", (pan_count, tg_id))
+    cur.execute("UPDATE USERS SET n_pan = ? WHERE tg_id = ?", (n_pan, tg_id))
 
     con.commit()
     con.close()
@@ -126,7 +126,7 @@ def add_fines(tg_id: int, fine: int) -> bool:
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is None:
@@ -135,7 +135,7 @@ def add_fines(tg_id: int, fine: int) -> bool:
         return False
 
     cur.execute(
-        "UPDATE USERS SET awoo_debt = awoo_debt + ? WHERE tg_id = ?",
+        "UPDATE USERS SET n_awoo = n_awoo + ? WHERE tg_id = ?",
         (
             fine,
             tg_id,
@@ -156,7 +156,7 @@ def add_fine(tg_id: int) -> bool:
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT n_awoo FROM USERS WHERE n_awoo = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is None:
@@ -165,7 +165,7 @@ def add_fine(tg_id: int) -> bool:
         return False
 
     cur.execute(
-        "UPDATE USERS SET awoo_debt = awoo_debt + 350 WHERE tg_id = ?", (tg_id,)
+        "UPDATE USERS SET n_awoo = n_awoo + 1 WHERE tg_id = ?", (tg_id,)
     )
 
     con.commit()
@@ -182,7 +182,7 @@ def remove_fine(amt: int, tg_id: int) -> bool:
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
     if res is None:
         cur.close()
@@ -190,7 +190,7 @@ def remove_fine(amt: int, tg_id: int) -> bool:
         return False
 
     cur.execute(
-        "UPDATE USERS SET awoo_debt = awoo_debt - ? WHERE tg_id = ?", (amt, tg_id)
+        "UPDATE USERS SET n_awoo = n_awoo - ? WHERE tg_id = ?", (amt, tg_id)
     )
 
     con.commit()

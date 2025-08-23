@@ -46,6 +46,128 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+AT_ADMIN_RE = re.compile(r"@admin")
+
+
+async def search_handle_at_admin(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle '@admin' in message text.
+    """
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    if message.text is None:
+        return False
+
+    at_admin_match = AT_ADMIN_RE.search(message.text)
+    if at_admin_match is None:
+        return False
+
+    # TODO: sent some sort of message indicating that @admin must be a reply; or
+    # handle the case where it is not a reply
+    if message.reply_to_message is None:
+        return False
+    reply_to = message.reply_to_message
+
+    assert message.from_user is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, text="Contacting the admin team"
+    )
+    await context.bot.forward_message(
+        chat_id=ADMIN_CID,
+        from_chat_id=reply_to.chat_id,
+        message_id=reply_to.message_id,
+    )
+    await context.bot.send_message(
+        chat_id=ADMIN_CID,
+        text="Attention requested in '{}' by {}".format(
+            reply_to.chat.title, message.from_user.first_name
+        ),
+    )
+    await context.bot.forward_message(
+        chat_id=ADMIN_CID,
+        from_chat_id=reply_to.chat_id,
+        message_id=message.message_id,
+    )
+    return True
+
+
+AWOO_RE = re.compile(r"[@Aa]+[rwW]+[o0O]+")
+
+
+async def search_handle_awoo(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle 'awoo' in message text.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    if text is None:
+        return False
+
+    awoo_matches = AWOO_RE.findall(text)
+    if len(awoo_matches) == 0:
+        return False
+
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    members = get_members()
+    for member in members:
+        if int(from_user.id) == int(member[0]):
+            add_fine(member[0])
+            await context.bot.send_message(
+                chat_id=effective_chat.id,
+                text=f"""Don't Awoo! - $350 fine!
+
+{from_user.first_name}'s current fines ${member[4] + 350}""",
+            )
+
+    return True
+
+
+VORE_RE = re.compile(r"[Vv]+[Oo0]+[Rr]+[Ee3]+[SszZ]*")
+VORE_STICKER_PACK_NAME = "FJZGIF"
+
+
+async def search_handle_vore(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle 'vore' in message text.
+    """
+    message = update.message
+    assert message is not None
+
+    if message.text is None:
+        return False
+
+    vore_matches = VORE_RE.findall(message.text)
+    if len(vore_matches) == 0:
+        return False
+
+    sticker_set = await context.bot.get_sticker_set(name=VORE_STICKER_PACK_NAME)
+    stickers_in_set = sticker_set.stickers
+    sticker_ids = [sticker.file_id for sticker in stickers_in_set]
+    random_sticker_id = random.choice(sticker_ids)
+
+    await message.reply_sticker(
+        sticker=random_sticker_id, reply_to_message_id=message.message_id
+    )
+    return True
+
 
 async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -62,8 +184,14 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
     fname = user.first_name
     lname = user.last_name
 
+    # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
+    # is triggered; 'fun' stuff shouldn't trigger during admin summons
+    at_admined = await search_handle_at_admin(update, context)
+    if not at_admined:
+        await search_handle_awoo(update, context)
+        await search_handle_vore(update, context)
+
     try:
-        await auto_awoo(update, context)
         add_current_members(username, user_id, fname, lname)
     except Exception as e:
         logging.error(e)
@@ -247,86 +375,6 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 revoke_messages=False,
             )  # need to decide if messages they send will be visible
             return
-
-
-# reads through all messages sent and looks for awoo to fine the person
-# also currently houses the @admin function
-async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A service that goes through a message sent and looks for 'awoo'.
-    Also apparently houses the @admin function (needs to be taken out and made into its own service)
-    Also houses the vore function
-    author: Torin
-    :param update:
-    :param context:
-    :return:
-    """
-
-    text0 = update.message.text
-    logging.info(text0)
-    t = re.findall(r"[@Aa]+[rwW]+[o0O]+", text0)
-    call = re.findall("@admin", text0)
-    vore = re.findall(r"[Vv]+[Oo0]+[Rr]+[Ee3]+[SszZ]*", text0)
-    logging.info(t)  # idk wtf this does but it doesnt work without it
-    members = get_members()
-    if t:
-        for x in members:
-            if int(update.message.from_user.id) == int(x[0]):
-                add_fine(x[0])
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"Don't Awoo! - $350 fine!\n\n{update.message.from_user.first_name}'s current fines ${x[4] + 350}",
-                    #                         update.message.from_user.first_name, x[4] + 350)
-                    # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
-                )
-    if call:  # if @admin was called
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Contacting the admin team"
-        )
-
-        # forwad message to admin chat
-        # forward the message that had @admin
-        # send a message saying the user that requested the @admin
-
-        replied_message = update.message.reply_to_message
-        # chat IDs
-        # -1002082274403  second test server
-
-        if replied_message:
-            await context.bot.forward_message(
-                chat_id=ADMIN_CID,
-                from_chat_id=replied_message.chat_id,
-                message_id=replied_message.message_id,
-            )
-            await context.bot.send_message(
-                chat_id=ADMIN_CID,
-                text="Attention requested in '{}' by {}".format(
-                    update.message.chat.title, update.message.from_user.first_name
-                ),
-            )
-            await context.bot.forward_message(
-                chat_id=ADMIN_CID,
-                from_chat_id=replied_message.chat_id,
-                message_id=update.message.message_id,
-            )
-    if vore:  # if someone says vore
-
-        original_message_id = update.message.message_id
-        sticker_pack_name = "FJZGIF"
-        # sticker_pack_name = "FURRIT_PAN"
-        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-        stickers_in_set = sticker_set.stickers
-        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-        random_sticker_id = random.choice(sticker_ids)
-        await update.message.reply_sticker(
-            sticker=random_sticker_id, reply_to_message_id=original_message_id
-        )
-
-
-#         context.bot.forward_message(
-#             chat_id=update.effective_message.chat_id,
-#             from_chat_id=update.effective_message.chat_id,
-#             message_id=replied_message.message_id, )
 
 
 async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -6,8 +6,8 @@ CREATE TABLE USERS(
     id              INTEGER PRIMARY KEY,
     tg_id           INTEGER NOT NULL UNIQUE,
     tg_first_name   VARCHAR(64) NOT NULL,
-    tg_last_name    VARCHAR(64) NOT NULL,
-    tg_username     VARCHAR(32) NOT NULL,
+    tg_last_name    VARCHAR(64),
+    tg_username     VARCHAR(32),
     awoo_debt       INTEGER DEFAULT 0 NOT NULL,
     pan_count       INTEGER DEFAULT 0 NOT NULL
 );

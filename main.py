@@ -558,6 +558,26 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+COMMAND_HANDLERS = [
+    ("pan", pan),
+    ("fine", fines),
+    ("unfine", Rfine),
+    ("barn", barn_command),
+    ("get", get_all_members),
+    ("add", add_users_fines),
+    ("get_quotes", get_all_quotes),
+    ("quote", add_quote),
+    ("awoo", autoAwoo),
+    ("commands", print_commands),
+    ("channels_sfw", sfw_print_chats),
+    ("channels_nsfw", nsfw_print_chats),
+    ("rules", print_rules),
+    ("chats", print_c),
+    ("links", print_links),
+    ("getc", get_chat_id),
+]
+
+
 if __name__ == "__main__":
     # rebuild_tables()
 
@@ -594,38 +614,11 @@ if __name__ == "__main__":
         args=[application.bot],  # Pass bot context
     )
 
-    # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
+    for command, callback in COMMAND_HANDLERS:
+        handler = CommandHandler(command, callback)
+        application.add_handler(handler)
 
-    pan_handler = CommandHandler("pan", pan)
-    fine_handler = CommandHandler("fine", fines)
-    remove_fine_handler = CommandHandler("unfine", Rfine)
-    barn_handler = CommandHandler("barn", barn_command)
-    get_handler = CommandHandler("get", get_all_members)
-    add_users = CommandHandler("add", add_users_fines)
-    get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
-    add_quote_handler = CommandHandler("quote", add_quote)
     members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_messages)
-
-    application.add_handler(pan_handler)
-    application.add_handler(fine_handler)
-    application.add_handler(remove_fine_handler)
-    application.add_handler(barn_handler)
-
-    application.add_handler(CommandHandler("awoo", autoAwoo))
-
-    application.add_handler(CommandHandler("commands", print_commands))
-    application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))
-    application.add_handler(CommandHandler("channels_nsfw", nsfw_print_chats))
-    application.add_handler(CommandHandler("rules", print_rules))
-    application.add_handler(CommandHandler("chats", print_c))
-    application.add_handler(CommandHandler("links", print_links))
-    application.add_handler(CommandHandler("getc", get_chat_id))
-
-    application.add_handler(get_handler)
-    application.add_handler(add_users)
-    application.add_handler(get_quote_handler)
-    application.add_handler(add_quote_handler)
-    application.add_handler(members_handler)
 
     application.run_polling()
     scheduler.start()

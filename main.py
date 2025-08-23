@@ -674,6 +674,7 @@ if __name__ == "__main__":
         application.add_handler(handler)
 
     members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_message_generic)
+    application.add_handler(members_handler)
 
     application.run_polling()
     scheduler.start()

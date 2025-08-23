@@ -264,9 +264,9 @@ async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text0 = update.message.text
     logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
+    t = re.findall(r"[@Aa]+[wW]+[o0O]+[o0O]+", text0)
     call = re.findall("@admin", text0)
-    vore = re.findall(r"[V+v]+[O+o+0]+[R+r]+[E+e+3]+[S+s+z+Z]*", text0)
+    vore = re.findall(r"[Vv]+[Oo0]+[Rr]+[Ee3]+[SszZ]*", text0)
     logging.info(t)  # idk wtf this does but it doesnt work without it
     members = get_members()
     if t:

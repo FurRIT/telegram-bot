@@ -47,7 +47,7 @@ logging.basicConfig(
 )
 
 
-async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     If a new user speaks in chat, they are added to the database.
     Waits for 'awoo' to be sent in the chat.
@@ -618,7 +618,7 @@ if __name__ == "__main__":
         handler = CommandHandler(command, callback)
         application.add_handler(handler)
 
-    members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_messages)
+    members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_message_generic)
 
     application.run_polling()
     scheduler.start()

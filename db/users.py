@@ -3,8 +3,9 @@ User handling utilities.
 """
 
 import os
-import logging
 import datetime
+
+import telegram
 
 from db.utils import connect, exec_sql_file
 
@@ -19,6 +20,30 @@ def rebuild_tables() -> None:
     WARNING: Destructive.
     """
     exec_sql_file(SCHEMA_PATH)
+
+
+def add_update_tg_user(user: telegram.User) -> None:
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute("SELECT id FROM USERS WHERE tg_id = ?", (user.id,))
+    res: tuple[int] | None = cur.fetchone()
+
+    if res is None:
+        cur.execute(
+            "INSERT INTO USERS (tg_id, tg_first_name, tg_last_name, tg_username) VALUES (?, ?, ?, ?)",
+            (user.id, user.first_name, user.last_name, user.username),
+        )
+    else:
+        uid: int = res[0]
+        cur.execute(
+            "UPDATE USERS SET tg_first_name = ?, tg_last_name = ?, tg_username = ? WHERE id = ?",
+            (user.first_name, user.last_name, user.username, uid),
+        )
+
+    con.commit()
+    cur.close()
+    con.close()
 
 
 def add_pan_count(tg_id: int) -> None:

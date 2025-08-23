@@ -11,7 +11,7 @@ from datetime import datetime, timedelta  # imported for /ban method
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from telegram import Update, Bot
+from telegram import Update, Bot, User
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
@@ -20,7 +20,7 @@ from telegram.ext import (
     filters,
 )
 from db.users import (
-    add_current_members,
+    add_update_tg_user,
     get_members,
     add_pan_count,
     add_quote_db,
@@ -184,16 +184,17 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
     :return:
     """
     message = update.message
-    user = message.from_user
-    user_id = user.id
-    username = user.username
-    fname = user.first_name
-    lname = user.last_name
+    if message is None:
+        return
 
-    try:
-        add_current_members(username, user_id, fname, lname)
-    except Exception as e:
-        logging.error(e)
+    # XXX(mwp): bookkeep new users joining or sending messages in chat
+    users: list[User | None] = [message.from_user]
+    if message.new_chat_members is not None:
+        users.extend(message.new_chat_members)
+
+    for user in users:
+        if user is not None:
+            add_update_tg_user(user)
 
     at_admined = await search_handle_at_admin(update, context)
     if (

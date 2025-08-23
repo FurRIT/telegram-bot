@@ -1,17 +1,24 @@
-# oh god
+"""
+User handling utilities.
+"""
+
+import os
 import logging
 import datetime
 
 from db.utils import connect, exec_sql_file
 
-
-def rebuild_user_tables():
-    exec_sql_file("/app/src/main/FURRIT-BOT/db/users.sql")
-    exec_sql_file("/app/src/main/FURRIT-BOT/db/quotes.sql")
+DB_MODULE_ROOT = os.path.dirname(__file__)
+SCHEMA_PATH = os.path.join(DB_MODULE_ROOT, "schema.sql")
 
 
-def rebuild_quote_tables():
-    exec_sql_file("/app/src/main/FURRIT-BOT/db/quotes.sql")
+def rebuild_tables() -> None:
+    """
+    Rebuild all Datbase Tables.
+
+    WARNING: Destructive.
+    """
+    exec_sql_file(SCHEMA_PATH)
 
 
 def add_pan_count(uid):

@@ -189,9 +189,16 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
     except Exception as e:
         logging.error(e)
 
+    at_admined = await search_handle_at_admin(update, context)
+    if (
+        message is not None
+        and message.text is not None
+        and message.text.startswith("/")
+    ):
+        return
+
     # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
     # is triggered; 'fun' stuff shouldn't trigger during admin summons
-    at_admined = await search_handle_at_admin(update, context)
     if not at_admined:
         await search_handle_awoo(update, context)
         await search_handle_vore(update, context)

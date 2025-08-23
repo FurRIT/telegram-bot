@@ -155,7 +155,9 @@ def add_fines(tg_id: int, fine: int) -> bool:
 
 def incr_awoo(tg_id: int) -> int | None:
     """
-    Add a fine of 350 to a User.
+    Increment the awoo count of a User.
+
+    Returns the new count, or None if the User could not be found.
     """
     con = connect()
     cur = con.cursor()

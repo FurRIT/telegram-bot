@@ -8,6 +8,7 @@ CREATE TABLE USERS(
     tg_first_name   VARCHAR(64) NOT NULL,
     tg_last_name    VARCHAR(64),
     tg_username     VARCHAR(32),
+    fines           INTEGER DEFAULT 0 NOT NULL CHECK(fines >= 0),
     n_awoo          INTEGER DEFAULT 0 NOT NULL CHECK(n_awoo >= 0),
     n_pan           INTEGER DEFAULT 0 NOT NULL CHECK(n_pan >= 0)
 );

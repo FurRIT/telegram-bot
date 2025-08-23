@@ -10,14 +10,12 @@ from datetime import datetime, timedelta  # imported for /ban method
 
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram import Update, Bot
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
-    CallbackContext,
     MessageHandler,
     filters,
 )
@@ -29,7 +27,6 @@ from db.users import (
     get_quotes,
     add_fine,
     remove_fine,
-    rebuild_user_tables,
     add_fines,
 )
 

@@ -101,7 +101,7 @@ async def search_handle_at_admin(
     return True
 
 
-AWOO_RE = re.compile(r"[@Aa]+[rwW]+[o0O]+")
+AWOO_RE = re.compile(r"[@Aa]+[rwW]+[o0O]+(\s+|$)")
 
 
 async def search_handle_awoo(

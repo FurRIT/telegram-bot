@@ -59,7 +59,7 @@ def add_pan_count(tg_id: int) -> None:
     cur = con.cursor()
 
     cur.execute("SELECT pan_count FROM USERS WHERE tg_id = ?", (tg_id,))
-    res = cur.fetchone()
+    res: tuple[int] | None = cur.fetchone()
 
     if res is None:
         cur.close()
@@ -84,7 +84,7 @@ def add_quote_db(from_uid: int, to_uid: int, quote: str) -> bool:
     cur = con.cursor()
 
     cur.execute(f"""SELECT user_id FROM QUOTES WHERE QUOTE = "{quote}" """)
-    res = cur.fetchone()
+    res: tuple[int] | None = cur.fetchone()
 
     if res is None:
         cur.close()
@@ -127,7 +127,8 @@ def add_fines(tg_id: int, fine: int) -> bool:
     cur = con.cursor()
 
     cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
-    res = cur.fetchone()
+    res: tuple[int] | None = cur.fetchone()
+
     if res is None:
         cur.close()
         con.close()
@@ -155,7 +156,7 @@ def add_fine(tg_id: int) -> bool:
     con = connect()
     cur = con.cursor()
     cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
-    res = cur.fetchone()
+    res: tuple[int] | None = cur.fetchone()
     if res is None:
         cur.close()
         con.close()
@@ -180,7 +181,7 @@ def remove_fine(amt: int, tg_id: int) -> bool:
     cur = con.cursor()
 
     cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
-    res = cur.fetchone()
+    res: tuple[int] | None = cur.fetchone()
     if res is None:
         cur.close()
         con.close()

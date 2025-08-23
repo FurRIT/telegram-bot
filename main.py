@@ -67,6 +67,8 @@ async def search_handle_at_admin(
     if at_admin_match is None:
         return False
 
+    admin_cid = context.bot_data["ADMIN_CID"]
+
     # TODO: sent some sort of message indicating that @admin must be a reply; or
     # handle the case where it is not a reply; still returns True to indicate an
     # @admin match
@@ -80,18 +82,18 @@ async def search_handle_at_admin(
         chat_id=effective_chat.id, text="Contacting the admin team"
     )
     await context.bot.forward_message(
-        chat_id=ADMIN_CID,
+        chat_id=admin_cid,
         from_chat_id=reply_to.chat_id,
         message_id=reply_to.message_id,
     )
     await context.bot.send_message(
-        chat_id=ADMIN_CID,
+        chat_id=admin_cid,
         text="Attention requested in '{}' by {}".format(
             reply_to.chat.title, message.from_user.first_name
         ),
     )
     await context.bot.forward_message(
-        chat_id=ADMIN_CID,
+        chat_id=admin_cid,
         from_chat_id=reply_to.chat_id,
         message_id=message.message_id,
     )
@@ -637,19 +639,23 @@ COMMAND_HANDLERS = [
 ]
 
 
-if __name__ == "__main__":
-    # rebuild_tables()
-
+def main() -> None:
+    """
+    Load configurations & start listening.
+    """
     dotenv.load_dotenv()
 
-    RAW_CID = os.environ["CID"]
-    CID = int(RAW_CID)
+    raw_cid = os.environ["CID"]
+    cid = int(raw_cid)
 
-    RAW_ADMIN_CID = os.environ["ADMIN_CID"]
-    ADMIN_CID = int(RAW_ADMIN_CID)
+    raw_admin_cid = os.environ["ADMIN_CID"]
+    admin_cid = int(raw_admin_cid)
 
-    BOT_TOKEN = os.environ["BOT_TOKEN"]
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_token = os.environ["BOT_TOKEN"]
+    application = ApplicationBuilder().token(bot_token).build()
+
+    # NOTE: store the data into the bot datastore for access in handlers
+    application.bot_data["ADMIN_CID"] = admin_cid
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
@@ -677,8 +683,12 @@ if __name__ == "__main__":
         handler = CommandHandler(command, callback)
         application.add_handler(handler)
 
-    members_handler = MessageHandler(filters.Chat(chat_id=CID), handle_message_generic)
+    members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
 
     application.run_polling()
     scheduler.start()
+
+
+if __name__ == "__main__":
+    main()

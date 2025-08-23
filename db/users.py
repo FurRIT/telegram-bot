@@ -13,8 +13,8 @@ DB_MODULE_ROOT = os.path.dirname(__file__)
 SCHEMA_PATH = os.path.join(DB_MODULE_ROOT, "schema.sql")
 
 
-# XXX(mwp): the cost of a single awoo in terms of a user-displayed value in $USD
-N_AWOO_COST = 350
+# XXX(mwp): the cost of a single awoo in terms of fines
+AWOO_FINE_COST = 350
 
 
 def rebuild_tables() -> None:
@@ -153,30 +153,34 @@ def add_fines(tg_id: int, fine: int) -> bool:
     return True
 
 
-def incr_awoo(tg_id: int) -> int | None:
+def incr_fine_awoo(tg_id: int) -> int | None:
     """
-    Increment the awoo count of a User.
+    Increment the awoo count and add fines for a User.
 
-    Returns the new count, or None if the User could not be found.
+    Returns the fine amount, or None if the User could not be found.
     """
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
-    res: tuple[int] | None = cur.fetchone()
+    cur.execute("SELECT fines, n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
+    res: tuple[int, int] | None = cur.fetchone()
 
     if res is None:
         cur.close()
         con.close()
         return None
 
-    cur.execute("UPDATE USERS SET n_awoo = n_awoo + 1 WHERE tg_id = ?", (tg_id,))
+    cur.execute(
+        f"UPDATE USERS SET fines = fines + {AWOO_FINE_COST}, n_awoo = n_awoo + 1 WHERE tg_id = ?",
+        (tg_id,),
+    )
 
     con.commit()
     cur.close()
     con.close()
 
-    return res[0] + 1
+    fines = res[0]
+    return fines + AWOO_FINE_COST
 
 
 def remove_fine(amt: int, tg_id: int) -> bool:

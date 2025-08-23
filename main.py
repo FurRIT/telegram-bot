@@ -25,10 +25,10 @@ from db.users import (
     add_pan_count,
     add_quote_db,
     get_quotes,
-    incr_awoo,
+    incr_fine_awoo,
     remove_fine,
     add_fines,
-    N_AWOO_COST,
+    AWOO_FINE_COST,
 )
 
 
@@ -129,16 +129,14 @@ async def search_handle_awoo(
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    n_awoo = incr_awoo(from_user.id)
-    assert n_awoo is not None
-
-    value = n_awoo * N_AWOO_COST
+    c_fines = incr_fine_awoo(from_user.id)
+    assert c_fines is not None
 
     await context.bot.send_message(
         chat_id=effective_chat.id,
-        text=f"""Don't Awoo! - $350 fine!
+        text=f"""Don't Awoo! - ${AWOO_FINE_COST} fine!
 
-{from_user.first_name}'s current fines ${value}""",
+{from_user.first_name}'s current fines ${c_fines}""",
     )
 
     return True
@@ -497,7 +495,7 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
         members = get_members()
         for x in members:
             if int(replied_message.from_user.id) == int(x[0]):
-                incr_awoo(x[0])
+                incr_fine_awoo(x[0])
                 # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
                 await update.message.reply_text(
                     text="Fining "

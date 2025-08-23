@@ -69,9 +69,10 @@ async def search_handle_at_admin(
         return False
 
     # TODO: sent some sort of message indicating that @admin must be a reply; or
-    # handle the case where it is not a reply
+    # handle the case where it is not a reply; still returns True to indicate an
+    # @admin match
     if message.reply_to_message is None:
-        return False
+        return True
     reply_to = message.reply_to_message
 
     assert message.from_user is not None

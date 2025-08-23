@@ -13,9 +13,7 @@ BIN_DIR_ROOT = os.path.dirname(__file__)
 DEFAULT_DB_PATH = os.path.relpath(os.path.join(BIN_DIR_ROOT, "..", "database.db"))
 
 DB_MOD_ROOT = os.path.join(BIN_DIR_ROOT, "..", "db")
-
-USERS_SCHEMA_PATH = os.path.join(DB_MOD_ROOT, "users.sql")
-QUOTES_SCHEMA_PATH = os.path.join(DB_MOD_ROOT, "quotes.sql")
+SCHEMA_PATH = os.path.join(DB_MOD_ROOT, "schema.sql")
 
 
 def _execute(conn: sqlite3.Connection, path: str) -> None:
@@ -52,9 +50,7 @@ def main() -> None:
     pathlib.Path(args.output).touch(exist_ok=args.force)
     conn = sqlite3.connect(args.output)
 
-    _execute(conn, USERS_SCHEMA_PATH)
-    _execute(conn, QUOTES_SCHEMA_PATH)
-
+    _execute(conn, SCHEMA_PATH)
     conn.commit()
 
 

@@ -155,15 +155,17 @@ def add_fine(tg_id: int) -> bool:
     """
     con = connect()
     cur = con.cursor()
+
     cur.execute("SELECT awoo_debt FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
+
     if res is None:
         cur.close()
         con.close()
         return False
 
     cur.execute(
-        f"""UPDATE USERS SET AWOO_FINE = AWOO_FINE + {350} WHERE TELEGRAM_ID = "{str(tg_id)}" """
+        "UPDATE USERS SET awoo_debt = awoo_debt + 350 WHERE tg_id = ?", (tg_id,)
     )
 
     con.commit()
@@ -188,7 +190,7 @@ def remove_fine(amt: int, tg_id: int) -> bool:
         return False
 
     cur.execute(
-        "UPDATE USERS SET AWOO_FINE = AWOO_FINE - ? WHERE tg_id = ?", (amt, tg_id)
+        "UPDATE USERS SET awoo_debt = awoo_debt - ? WHERE tg_id = ?", (amt, tg_id)
     )
 
     con.commit()

@@ -9,10 +9,9 @@ import sqlite3
 import argparse
 
 BIN_ROOT = os.path.dirname(__file__)
-DATA_ROOT = os.path.relpath(os.path.join(BIN_ROOT, "..", "data"))
+REPO_ROOT = os.path.join(BIN_ROOT, "..")
 
-DEFAULT_DB_PATH = os.path.join(DATA_ROOT, "FurritDB.db")
-DEFAULT_QUOTES_PATH = os.path.join(DATA_ROOT, "Quotes.csv")
+DEFAULT_DB_PATH = os.path.relpath(os.path.join(REPO_ROOT, "database.db"))
 
 
 def main() -> None:
@@ -21,17 +20,12 @@ def main() -> None:
     """
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("quotefile", help="quotes file path (default %(default)s)")
     parser.add_argument(
         "-s",
         "--sqlite",
         help="sqlite file path (default %(default)s)",
         default=DEFAULT_DB_PATH,
-    )
-    parser.add_argument(
-        "-q",
-        "--quotes",
-        help="quotes file path (default %(default)s)",
-        default=DEFAULT_QUOTES_PATH,
     )
     args = parser.parse_args()
 

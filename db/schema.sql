@@ -16,6 +16,7 @@ CREATE TABLE QUOTES(
     id              INTEGER PRIMARY KEY,
     sent_by         INTEGER REFERENCES USERS(id) NOT NULL,
     sent_at         INTEGER NOT NULL,
+    sent_msg        INTEGER NOT NULL,
     added_by        INTEGER REFERENCES USERS(id) NOT NULL,
     added_at        INTEGER NOT NULL,
     quote           VARCHAR(256) NOT NULL,

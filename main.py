@@ -54,6 +54,8 @@ async def search_handle_at_admin(
 ) -> bool:
     """
     Search for and handle '@admin' in message text.
+
+    Returns whether or not @admin matched.
     """
     message = update.message
     assert message is not None
@@ -107,6 +109,8 @@ async def search_handle_awoo(
 ) -> bool:
     """
     Search for and handle 'awoo' in message text.
+
+    Returns whether or not awoo matched.
     """
     message = update.message
     assert message is not None
@@ -148,6 +152,8 @@ async def search_handle_vore(
 ) -> bool:
     """
     Search for and handle 'vore' in message text.
+
+    Returns whether or not vore matched.
     """
     message = update.message
     assert message is not None

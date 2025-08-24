@@ -35,6 +35,17 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+
+async def _random_sticker_pack_sticker(
+    name: str, context: ContextTypes.DEFAULT_TYPE
+) -> str:
+    """Get a random sticker from a sticker pack."""
+    stickers = await context.bot.get_sticker_set(name=name)
+    file_ids = [sticker.file_id for sticker in stickers.stickers]
+
+    return random.choice(file_ids)
+
+
 AT_ADMIN_RE = re.compile(r"@admin")
 
 
@@ -155,14 +166,8 @@ async def search_handle_vore(
     if len(vore_matches) == 0:
         return False
 
-    sticker_set = await context.bot.get_sticker_set(name=VORE_STICKER_PACK_NAME)
-    stickers_in_set = sticker_set.stickers
-    sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-    random_sticker_id = random.choice(sticker_ids)
-
-    await message.reply_sticker(
-        sticker=random_sticker_id, reply_to_message_id=message.message_id
-    )
+    sticker = await _random_sticker_pack_sticker(VORE_STICKER_PACK_NAME, context)
+    await message.reply_sticker(sticker=sticker, reply_to_message_id=message.message_id)
     return True
 
 
@@ -202,6 +207,9 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
         await search_handle_vore(update, context)
 
 
+PAN_STICKER_PACK_NAME = "FURRIT_PAN"
+
+
 async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Pan awaits a trigger for its command.  It checks the replied message.
@@ -232,14 +240,11 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         else:
             original_message_id = replied_message.message_id
-            sticker_pack_name = "FURRIT_PAN"
-            sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-            stickers_in_set = sticker_set.stickers
-            sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-            random_sticker_id = random.choice(sticker_ids)
+            sticker = await _random_sticker_pack_sticker(PAN_STICKER_PACK_NAME, context)
             add_pan_count(replied_message.from_user.id)
+
             await update.message.reply_sticker(
-                sticker=random_sticker_id, reply_to_message_id=original_message_id
+                sticker=sticker, reply_to_message_id=original_message_id
             )
     else:
         await context.bot.send_message(

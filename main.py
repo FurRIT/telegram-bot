@@ -345,21 +345,6 @@ async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
 
 
-async def cmd_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
-    # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
-    count = await context.bot.get_chat_member_count(update.effective_chat.id)
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(
-        count, admins[0].user.username, admins[1].user.username
-    )
-    text1 = admins[0].user.username + admins[1].user.username
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-
-
-#     print(admins) #remove /TODO
-
-
 async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
@@ -593,7 +578,6 @@ COMMAND_HANDLERS = [
     ("get", cmd_get),
     ("get_quotes", cmd_get_quotes),
     ("quote", cmd_quote),
-    ("awoo", cmd_awoo),
     ("commands", cmd_commands),
     ("channels_sfw", cmd_channels_sfw),
     ("channels_nsfw", cmd_channels_nsfw),

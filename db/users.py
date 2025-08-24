@@ -185,27 +185,28 @@ def incr_fine_awoo(tg_id: int) -> int | None:
     return fines + AWOO_FINE_COST
 
 
-def remove_fine(amt: int, tg_id: int) -> bool:
+def do_forgive_fine(tg_id: int, amount: int) -> int | None:
     """
     Forgive a fine of some amount.
     """
     con = connect()
     cur = con.cursor()
 
-    cur.execute("SELECT n_awoo FROM USERS WHERE tg_id = ?", (tg_id,))
+    cur.execute("SELECT fines FROM USERS WHERE tg_id = ?", (tg_id,))
     res: tuple[int] | None = cur.fetchone()
     if res is None:
         cur.close()
         con.close()
-        return False
+        return None
 
-    cur.execute("UPDATE USERS SET n_awoo = n_awoo - ? WHERE tg_id = ?", (amt, tg_id))
+    cur.execute("UPDATE USERS SET fines = fines - ? WHERE tg_id = ?", (amount, tg_id))
 
     con.commit()
     cur.close()
     con.close()
 
-    return True
+    fines = res[0]
+    return fines - amount
 
 
 def get_quotes():

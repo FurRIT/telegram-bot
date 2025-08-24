@@ -26,7 +26,7 @@ from db.users import (
     add_quote_db,
     get_quotes,
     incr_fine_awoo,
-    remove_fine,
+    do_forgive_fine,
     do_fine_user,
     AWOO_FINE_COST,
 )
@@ -381,49 +381,36 @@ async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
 
+MANUAL_UNFINE_COST = 350
+
+
 async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Removes a single fine from a user. Can specify amount removed.
     author: Torin
     """
-    # if a message was replied to
-    replied_message = update.message.reply_to_message
-    if replied_message:
-        id = replied_message.from_user.id
-        remove_fine(350, id)
-        await update.message.reply_text(
-            text="forgiving a $350 fine from " + replied_message.from_user.username,
-            reply_to_message_id=replied_message.message_id,
-        )
-        return
+    message = update.message
+    assert message is not None
 
-    # idk if this actually works yet, so imma just skip it with a return
-    return
-    # if no message was replied to
-    message = update.message.text
-    user = ""
-    index = 8
-    go = 0
-    print(message[8])
-    while index < len(message):
-        if message[index] == "@":
-            go = 1
-        elif go == 1:
-            if message[index] != " ":
-                user += message[index]
-            else:
-                break
-        index += 1
-    members = get_members()
-    for x in members:
-        if str(user) == str(x[1]):  # if the user is in the chat
-            remove_fine(350, x[0])
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(
-                    user, user, x[4] - 350
-                ),
-            )
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        to_reply_to = message.message_id
+        user_to_unfine = message.from_user
+    else:
+        to_reply_to = reply_to_message.message_id
+        user_to_unfine = reply_to_message.from_user
+
+    assert user_to_unfine is not None
+
+    cfines = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
+    assert cfines is not None
+
+    await message.reply_text(
+        text=f"""Forgiving ${MANUAL_UNFINE_COST} from {user_to_unfine.first_name}.
+
+{user_to_unfine.first_name}'s current fines ${cfines}""",
+        reply_to_message_id=to_reply_to,
+    )
 
 
 MANUAL_FINE_COST = 350

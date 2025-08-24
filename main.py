@@ -497,6 +497,9 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_to_fine = reply_to_message.from_user
     assert user_to_fine is not None
 
+    # XXX(mwp): make sure the user we're about to fine is registered
+    add_update_tg_user(user_to_fine)
+
     c_fines = do_fine_user(user_to_fine.id, MANUAL_FINE_COST)
     assert c_fines is not None
 

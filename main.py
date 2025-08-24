@@ -21,7 +21,6 @@ from telegram.ext import (
 )
 from db.users import (
     add_update_tg_user,
-    get_members,
     add_pan_count,
     add_quote_db,
     get_quotes,

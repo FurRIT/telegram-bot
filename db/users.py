@@ -106,22 +106,6 @@ def add_quote_db(from_uid: int, to_uid: int, quote: str) -> bool:
     return True
 
 
-def get_members():
-    """
-    Get all Users.
-    """
-    con = connect()
-    cur = con.cursor()
-
-    cur.execute("SELECT * FROM USERS")
-    res = cur.fetchall()
-
-    cur.close()
-    con.close()
-
-    return res
-
-
 def do_fine_user(tg_id: int, amount: int) -> int | None:
     """
     Add a fine amount to a User.

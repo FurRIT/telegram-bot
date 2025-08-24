@@ -22,11 +22,11 @@ from telegram.ext import (
 from db.users import (
     add_update_tg_user,
     add_pan_count,
-    add_quote_db,
     get_quotes,
     incr_fine_awoo,
     do_forgive_fine,
     do_fine_user,
+    try_do_add_quote,
     AWOO_FINE_COST,
 )
 from messages import (
@@ -506,41 +506,53 @@ async def cmd_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
-    # TODO: Need to create a base case for quotes that are too long
-    try:
-        if replied_message:
-            if replied_message.from_user == update.message.from_user:
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text="You can't quote yourself."
-                )
-                return
+    message = update.message
+    assert message is not None
 
-            if replied_message.from_user.id == context.bot.id:
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text="You can't quote the bot."
-                )
-                return
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
-            else:
-                quote_user_id = replied_message.from_user.id
-                quote_contents = replied_message.text
-                sender_user_id = update.message.from_user.id
-                value = add_quote_db(sender_user_id, quote_user_id, quote_contents)
-                if value == 1:
-                    await context.bot.send_message(
-                        chat_id=update.effective_chat.id, text="Quote added."
-                    )
-                if value == 0:
-                    await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text="You can't quote this twice!",
-                    )
-    except Exception as e:
-        logging.info(e)
+    reply_to_message = message.reply_to_message
+    assert reply_to_message is not None
+
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Failed. {e}"
+            chat_id=effective_chat.id, text="You must reply to a message to quote."
         )
+        return
+
+    if reply_to_message.text is None:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="Quoted message must have text."
+        )
+        return
+
+    assert message.from_user is not None
+    assert reply_to_message.from_user is not None
+
+    if reply_to_message.from_user == message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't quote yourself."
+        )
+        return
+
+    if reply_to_message.from_user.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't quote the bot."
+        )
+        return
+
+    # XXX(mwp): make sure both users are present in the database
+    add_update_tg_user(message.from_user)
+    add_update_tg_user(reply_to_message.from_user)
+
+    # XXX(mwp): try to add a quote, handling when it isn't possible
+    res = try_do_add_quote(reply_to_message, message)
+
+    ok, err_msg = res
+    if not ok:
+        assert err_msg is not None
+        await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
 
 
 async def daily_e(bot: Bot):

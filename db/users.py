@@ -3,7 +3,6 @@ User handling utilities.
 """
 
 import os
-import datetime
 
 import telegram
 
@@ -79,31 +78,75 @@ def add_pan_count(tg_id: int) -> None:
     con.close()
 
 
-def add_quote_db(from_uid: int, to_uid: int, quote: str) -> bool:
+QUOTE_MAX_LEN = 256
+
+
+def try_do_add_quote(
+    addee_msg: telegram.Message, adder_msg: telegram.Message
+) -> tuple[bool, str | None]:
     """
-    Add a Quote to the Database.
+    Try to add the Quote.
+
+    Returns a tuple - the first element is a success or failure, the second is
+    the failure message (if there is one).
     """
+
+    quote_txt = addee_msg.text
+    assert quote_txt is not None
+
+    addee_user = addee_msg.from_user
+    assert addee_user is not None
+
+    adder_user = adder_msg.from_user
+    assert adder_user is not None
+
+    raw = quote_txt.encode("utf-8")
+    if len(raw) > QUOTE_MAX_LEN:
+        return (False, "Quote is greater than max length")
 
     con = connect()
     cur = con.cursor()
 
-    cur.execute(f"""SELECT user_id FROM QUOTES WHERE QUOTE = "{quote}" """)
+    # XXX(mwp): check to see if the message being quoted (the addee) has already
+    # been quoted before
+    cur.execute("SELECT id FROM QUOTES WHERE sent_msg = ?", (addee_msg.id,))
     res: tuple[int] | None = cur.fetchone()
 
-    if res is None:
+    if res is not None:
         cur.close()
         con.close()
-        return False
+
+        return (False, "Message has already been quoted!")
+
+    # XXX(mwp): check to see if the message being quoted has itself been used to
+    # quote another thing
+    cur.execute("SELECT id FROM QUOTES WHERE added_msg = ?", (addee_msg.id,))
+    res = cur.fetchone()
+
+    if res is not None:
+        cur.close()
+        con.close()
+
+        return (False, "Message has been used to quote another message!")
 
     cur.execute(
-        f"""INSERT INTO QUOTES VALUES ({to_uid}, "{quote}",{datetime.date.today()}, {from_uid}) """
+        "INSERT INTO QUOTES (sent_by, sent_at, sent_msg, added_by, added_at, added_msg, quote) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            addee_user.id,
+            addee_msg.date.isoformat(),
+            addee_msg.id,
+            adder_user.id,
+            adder_msg.date.isoformat(),
+            adder_msg.id,
+            quote_txt,
+        ),
     )
 
     con.commit()
     cur.close()
     con.close()
 
-    return True
+    return (True, None)
 
 
 def do_fine_user(tg_id: int, amount: int) -> int | None:

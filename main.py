@@ -444,46 +444,6 @@ async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
 
-async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    The code to manually add fines to a User
-    Author: Torin
-    """
-    count = 0
-    uid = ""
-    fine = ""
-
-    message = update.message.text
-    message = message.split("\n")
-    f = 0
-    for command in message:
-        if f == 0:
-            f = 1
-            continue
-        input = command.split(" ")
-        first = 1
-        for num in input:
-            if first == 1:
-                uid = num
-                first = 2
-                continue
-            if first == 2:
-                fine = num
-                first = 1
-                do_fine_user(uid, fine)
-                continue
-
-    # if uid != '' and uid and fine != '' and fine:
-    #     # add_fines(uid, fine)
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text=f"attempted to add fines to user {uid} with amount {fine}")
-    # else:
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text="inadequate parameters to fine a custom amount")
-
-
 MANUAL_FINE_COST = 350
 
 
@@ -635,7 +595,6 @@ COMMAND_HANDLERS = [
     ("unfine", Rfine),
     ("barn", barn_command),
     ("get", get_all_members),
-    ("add", add_users_fines),
     ("get_quotes", get_all_quotes),
     ("quote", add_quote),
     ("awoo", autoAwoo),

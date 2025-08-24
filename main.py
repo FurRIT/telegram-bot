@@ -210,7 +210,7 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
 PAN_STICKER_PACK_NAME = "FURRIT_PAN"
 
 
-async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Pan awaits a trigger for its command.  It checks the replied message.
     If a user replies to themself, they are not allowed to pan themself.
@@ -262,7 +262,7 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: links += "\n the links + any other info abt it"
     links = "**Links:**"
@@ -272,7 +272,7 @@ async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=links)
 
 
-async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: chan += "\n the channel + any other info abt it"
     chan = "**Furrit Channels:**"
@@ -287,7 +287,7 @@ async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chan)
 
 
-async def print_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding to this list:
     # Make a new line and type: rule += "\n the rule + any other info abt it"
     rules = " **Furrit Rules:** "
@@ -312,7 +312,7 @@ Reply to any message with @admin {optional note} to flag it for attention.
     await context.bot.send_message(chat_id=update.effective_chat.id, text=rules)
 
 
-async def sfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_channels_sfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a chat to this list:
     # Make a new line and type: chat += "\n the chat + any other info abt it"
     chat = """SFW Affiliated Chats and Channels
@@ -328,14 +328,14 @@ Xoren (http://t.me/MrHyperCube)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
 
 
-async def nsfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_channels_nsfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a chat to this list:
     # Make a new line and type: chat += "\n the chat + any other info abt it"
     chat = """"""
     await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
 
 
-async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Formating of manually adding a command to this list:
     # Make a new line and type: command += "\n the command + any other info abt it"
     commands = "The list of user commands for the Bot:"
@@ -345,7 +345,7 @@ async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
 
 
-async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
     # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
     count = await context.bot.get_chat_member_count(update.effective_chat.id)
@@ -360,7 +360,7 @@ async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     print(admins) #remove /TODO
 
 
-async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
     Times out a user for 5 minutes.
@@ -396,13 +396,10 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
 
-async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Removes a single fine from a user.  Can specify amount removed.
+    Removes a single fine from a user. Can specify amount removed.
     author: Torin
-    :param update:
-    :param context:
-    :return:
     """
     # if a message was replied to
     replied_message = update.message.reply_to_message
@@ -489,7 +486,7 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # used to grab a list of all members
 # CADEN DO NOT DELETE
 # IT IS USED BY MOST OF THE FUNCTIONS
-async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_get(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A test command (will not be deployed) that gets the list of the members in the database.
     author: Caden
@@ -502,7 +499,7 @@ async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_get_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A test command (will not be deployed) that gets the list of all the quotes in the database.
     author: Caden
@@ -513,7 +510,7 @@ async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=get_quotes())
 
 
-async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Add a message to the quotes database.
     Cannot quote yourself or the bot.
@@ -564,12 +561,12 @@ async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
 
-async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_getc(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 
-async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     replied_message = update.message.reply_to_message
 
     if replied_message:
@@ -590,21 +587,21 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 COMMAND_HANDLERS = [
-    ("pan", pan),
+    ("pan", cmd_pan),
     ("fine", cmd_fine),
-    ("unfine", Rfine),
-    ("barn", barn_command),
-    ("get", get_all_members),
-    ("get_quotes", get_all_quotes),
-    ("quote", add_quote),
-    ("awoo", autoAwoo),
-    ("commands", print_commands),
-    ("channels_sfw", sfw_print_chats),
-    ("channels_nsfw", nsfw_print_chats),
-    ("rules", print_rules),
-    ("chats", print_c),
-    ("links", print_links),
-    ("getc", get_chat_id),
+    ("unfine", cmd_unfine),
+    ("barn", cmd_barn),
+    ("get", cmd_get),
+    ("get_quotes", cmd_get_quotes),
+    ("quote", cmd_quote),
+    ("awoo", cmd_awoo),
+    ("commands", cmd_commands),
+    ("channels_sfw", cmd_channels_sfw),
+    ("channels_nsfw", cmd_channels_nsfw),
+    ("rules", cmd_rules),
+    ("chats", cmd_chats),
+    ("links", cmd_links),
+    ("getc", cmd_getc),
 ]
 
 

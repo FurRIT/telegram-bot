@@ -388,7 +388,7 @@ async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if reply_to_message.from_user == message.from_user:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="You can't ban yourself."
+            chat_id=effective_chat.id, text="You can't ban yourself."
         )
         return
 

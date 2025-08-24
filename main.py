@@ -476,7 +476,7 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     incr_fine_awoo(user_to_fine.id)
     await message.reply_text(
-        text=f"""Fining ${user_to_fine.full_name} ${MANUAL_FINE_COST}!
+        text=f"""Fining {user_to_fine.full_name} ${MANUAL_FINE_COST}!
 
 {user_to_fine.full_name}'s current fines ${c_fines}""",
         reply_to_message_id=reply_to_message.message_id,

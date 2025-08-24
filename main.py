@@ -549,8 +549,13 @@ async def daily_e(bot: Bot):
 
 
 async def cmd_getc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await message.reply_text(f"Chat ID: `{effective_chat.id}`", parse_mode="Markdown")
 
 
 COMMAND_HANDLERS = [

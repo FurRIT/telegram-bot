@@ -473,7 +473,7 @@ async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
 MANUAL_FINE_COST = 350
 
 
-async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Command to fine a user by replying to their message.
     author: Torin
@@ -614,7 +614,7 @@ async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 COMMAND_HANDLERS = [
     ("pan", pan),
-    ("fine", fines),
+    ("fine", cmd_fine),
     ("unfine", Rfine),
     ("barn", barn_command),
     ("get", get_all_members),

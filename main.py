@@ -457,22 +457,6 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# used to grab a list of all members
-# CADEN DO NOT DELETE
-# IT IS USED BY MOST OF THE FUNCTIONS
-async def cmd_get(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A test command (will not be deployed) that gets the list of the members in the database.
-    author: Caden
-    :param update:
-    :param context:
-    :return:
-    """
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=get_members()[1][2]
-    )
-
-
 async def cmd_get_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A test command (will not be deployed) that gets the list of all the quotes in the database.
@@ -565,7 +549,6 @@ COMMAND_HANDLERS = [
     ("fine", cmd_fine),
     ("unfine", cmd_unfine),
     ("barn", cmd_barn),
-    ("get", cmd_get),
     ("get_quotes", cmd_get_quotes),
     ("quote", cmd_quote),
     ("commands", cmd_commands),

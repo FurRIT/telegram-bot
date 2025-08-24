@@ -402,6 +402,9 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     assert user_to_unfine is not None
 
+    # XXX(mwp): make sure the user we're about to unfine is registered
+    add_update_tg_user(user_to_unfine)
+
     cfines = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
     assert cfines is not None
 

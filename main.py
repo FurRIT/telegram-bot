@@ -99,9 +99,7 @@ async def search_handle_at_admin(
     )
     await context.bot.send_message(
         chat_id=admin_cid,
-        text="Attention requested in '{}' by {}".format(
-            reply_to.chat.title, message.from_user.first_name
-        ),
+        text=f"Attention requested in '{reply_to.chat.title}' by {message.from_user.first_name}",
     )
     await context.bot.forward_message(
         chat_id=admin_cid,

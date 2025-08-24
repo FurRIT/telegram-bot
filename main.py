@@ -302,8 +302,6 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     sticker = await _random_sticker_pack_sticker(BARN_STICKER_PACK_NAME, context)
-    add_pan_count(user_to_pan.id)
-
     await message.reply_sticker(
         sticker=sticker, reply_to_message_id=reply_to_message.id
     )

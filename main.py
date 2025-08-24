@@ -474,7 +474,6 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     c_fines = do_fine_user(user_to_fine.id, MANUAL_FINE_COST)
     assert c_fines is not None
 
-    incr_fine_awoo(user_to_fine.id)
     await message.reply_text(
         text=f"""Fining {user_to_fine.full_name} ${MANUAL_FINE_COST}!
 

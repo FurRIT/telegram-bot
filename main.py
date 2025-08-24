@@ -270,24 +270,46 @@ async def cmd_pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    replied_message = update.message.reply_to_message
+BARN_STICKER_PACK_NAME = "furrit_barn"
 
-    if replied_message:
-        original_message_id = replied_message.message_id
-        sticker_pack_name = "furrit_barn"
-        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-        stickers_in_set = sticker_set.stickers
-        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-        random_sticker_id = random.choice(sticker_ids)
-        await update.message.reply_sticker(
-            sticker=random_sticker_id, reply_to_message_id=original_message_id
-        )
-    else:
+
+async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """\\barn command"""
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="You need to reply to a message to pan.",
+            chat_id=effective_chat.id,
+            text="You need to reply to a message to barn.",
         )
+        return
+
+    if message.from_user == reply_to_message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't barn yourself."
+        )
+        return
+
+    user_to_pan = reply_to_message.from_user
+    assert user_to_pan is not None
+
+    if user_to_pan.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't barn the bot."
+        )
+        return
+
+    sticker = await _random_sticker_pack_sticker(BARN_STICKER_PACK_NAME, context)
+    add_pan_count(user_to_pan.id)
+
+    await message.reply_sticker(
+        sticker=sticker, reply_to_message_id=reply_to_message.id
+    )
 
 
 async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):

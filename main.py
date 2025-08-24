@@ -364,6 +364,9 @@ async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+BAN_COMMAND_LENGTH = timedelta(minutes=5)
+
+
 async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
@@ -373,31 +376,38 @@ async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
+    message = update.message
+    assert message is not None
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't ban yourself."
-            )
-            return
-            # TODO: or if replying user is not an admin then message : "not allowed to ban"
-            # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="Unauthorized to ban."
-            )
-            return
-        else:
-            # actual banning of the user
-            await context.bot.ban_chat_member(
-                chat_id=update.effective_chat.id,  # chat
-                user_id=replied_message.from_user.id,  # origional message
-                until_date=(
-                    datetime.now() + timedelta(minutes=5)
-                ),  # need to decide how long to ban for
-                revoke_messages=False,
-            )  # need to decide if messages they send will be visible
-            return
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        return
+
+    if reply_to_message.from_user == message.from_user:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text="You can't ban yourself."
+        )
+        return
+
+    # TODO: or if replying user is not an admin then message : "not allowed to ban"
+    # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
+    # await context.bot.send_message(
+    #     chat_id=update.effective_chat.id, text="Unauthorized to ban."
+    # )
+    # return
+
+    user_to_ban = reply_to_message.from_user
+    assert user_to_ban is not None
+
+    await context.bot.ban_chat_member(
+        chat_id=effective_chat.id,
+        user_id=user_to_ban.id,
+        until_date=(datetime.now() + BAN_COMMAND_LENGTH),
+        revoke_messages=False,
+    )
 
 
 MANUAL_UNFINE_COST = 350

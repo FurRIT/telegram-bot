@@ -225,32 +225,41 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message
+    message = update.message
+    assert message is not None
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan yourself."
-            )
-            return
-        if replied_message.from_user.id == context.bot.id:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan the bot."
-            )
-            return
-        else:
-            original_message_id = replied_message.message_id
-            sticker = await _random_sticker_pack_sticker(PAN_STICKER_PACK_NAME, context)
-            add_pan_count(replied_message.from_user.id)
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
-            await update.message.reply_sticker(
-                sticker=sticker, reply_to_message_id=original_message_id
-            )
-    else:
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=effective_chat.id,
             text="You need to reply to a message to pan.",
         )
+        return
+
+    if message.from_user == reply_to_message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't pan yourself."
+        )
+        return
+
+    user_to_pan = reply_to_message.from_user
+    assert user_to_pan is not None
+
+    if user_to_pan.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't pan the bot."
+        )
+        return
+
+    sticker = await _random_sticker_pack_sticker(PAN_STICKER_PACK_NAME, context)
+    add_pan_count(user_to_pan.id)
+
+    await message.reply_sticker(
+        sticker=sticker, reply_to_message_id=reply_to_message.id
+    )
 
 
 async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):

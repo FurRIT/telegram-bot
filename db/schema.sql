@@ -14,12 +14,12 @@ CREATE TABLE USERS(
 );
 
 CREATE TABLE QUOTES(
-    id              INTEGER PRIMARY KEY,
-    sent_by         INTEGER REFERENCES USERS(tg_id) NOT NULL,
-    sent_at         TEXT NOT NULL,
-    sent_msg        INTEGER NOT NULL,
-    added_by        INTEGER REFERENCES USERS(tg_id) NOT NULL,
-    added_at        TEXT NOT NULL,
-    added_msg       INTEGER NOT NULL,
-    quote           VARCHAR(256) NOT NULL
+    id                  INTEGER PRIMARY KEY,
+    quotee_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
+    quotee_msg_sent_at  TEXT NOT NULL,
+    quotee_msg_id       INTEGER NOT NULL,
+    quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
+    quoter_msg_sent_at  TEXT NOT NULL,
+    quoter_msg_id       INTEGER NOT NULL,
+    quote               VARCHAR(256) NOT NULL
 );

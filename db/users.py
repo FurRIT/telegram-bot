@@ -82,7 +82,7 @@ QUOTE_MAX_LEN = 256
 
 
 def try_do_add_quote(
-    addee_msg: telegram.Message, adder_msg: telegram.Message
+    quotee_msg: telegram.Message, quoter_msg: telegram.Message
 ) -> tuple[bool, str | None]:
     """
     Try to add the Quote.
@@ -91,16 +91,16 @@ def try_do_add_quote(
     the failure message (if there is one).
     """
 
-    quote_txt = addee_msg.text
-    assert quote_txt is not None
+    quote = quotee_msg.text
+    assert quote is not None
 
-    addee_user = addee_msg.from_user
-    assert addee_user is not None
+    quotee = quotee_msg.from_user
+    assert quotee is not None
 
-    adder_user = adder_msg.from_user
-    assert adder_user is not None
+    quoter = quoter_msg.from_user
+    assert quoter is not None
 
-    raw = quote_txt.encode("utf-8")
+    raw = quote.encode("utf-8")
     if len(raw) > QUOTE_MAX_LEN:
         return (False, "Quote is greater than max length")
 
@@ -109,7 +109,7 @@ def try_do_add_quote(
 
     # XXX(mwp): check to see if the message being quoted (the addee) has already
     # been quoted before
-    cur.execute("SELECT id FROM QUOTES WHERE sent_msg = ?", (addee_msg.id,))
+    cur.execute("SELECT id FROM QUOTES WHERE quotee_msg_id = ?", (quotee_msg.id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is not None:
@@ -120,7 +120,7 @@ def try_do_add_quote(
 
     # XXX(mwp): check to see if the message being quoted has itself been used to
     # quote another thing
-    cur.execute("SELECT id FROM QUOTES WHERE added_msg = ?", (addee_msg.id,))
+    cur.execute("SELECT id FROM QUOTES WHERE quoter_msg_id = ?", (quotee_msg.id,))
     res = cur.fetchone()
 
     if res is not None:
@@ -130,15 +130,15 @@ def try_do_add_quote(
         return (False, "Message has been used to quote another message!")
 
     cur.execute(
-        "INSERT INTO QUOTES (sent_by, sent_at, sent_msg, added_by, added_at, added_msg, quote) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO QUOTES (quotee_tg_id, quotee_msg_sent_at, quotee_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (
-            addee_user.id,
-            addee_msg.date.isoformat(),
-            addee_msg.id,
-            adder_user.id,
-            adder_msg.date.isoformat(),
-            adder_msg.id,
-            quote_txt,
+            quotee.id,
+            quotee_msg.date.isoformat(),
+            quotee_msg.id,
+            quoter.id,
+            quoter_msg.date.isoformat(),
+            quoter_msg.id,
+            quote,
         ),
     )
 

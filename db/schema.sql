@@ -17,7 +17,7 @@ CREATE TABLE QUOTES(
     id                  INTEGER PRIMARY KEY,
     quotee_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quotee_msg_sent_at  TEXT NOT NULL,
-    quotee_msg_id       INTEGER NOT NULL,
+    quotee_msg_id       INTEGER NOT NULL UNIQUE,
     quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quoter_msg_sent_at  TEXT NOT NULL,
     quoter_msg_id       INTEGER NOT NULL,

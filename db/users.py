@@ -100,6 +100,13 @@ def try_do_add_quote(
     quoter = quoter_msg.from_user
     assert quoter is not None
 
+    # XXX(mwp): to enforce constraint that a quote be associated with one chat
+    # make sure both messages involved come from that same chat
+    if quotee_msg.chat.id != quoter_msg.chat.id:
+        return (False, "Quoted message must come from same chat")
+
+    chat_id = quotee_msg.chat.id
+
     raw = quote.encode("utf-8")
     if len(raw) > QUOTE_MAX_LEN:
         return (False, "Quote is greater than max length")
@@ -130,8 +137,9 @@ def try_do_add_quote(
         return (False, "Message has been used to quote another message!")
 
     cur.execute(
-        "INSERT INTO QUOTES (quotee_tg_id, quotee_msg_sent_at, quotee_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO QUOTES (tg_chat_id, quotee_tg_id, quotee_msg_sent_at, quotee_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (
+            chat_id,
             quotee.id,
             quotee_msg.date.isoformat(),
             quotee_msg.id,

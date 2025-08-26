@@ -82,7 +82,7 @@ QUOTE_MAX_LEN = 512
 
 
 def try_do_add_quote(
-    quotee_msg: telegram.Message, quoter_msg: telegram.Message
+    author_msg: telegram.Message, quoter_msg: telegram.Message
 ) -> tuple[bool, str | None]:
     """
     Try to add the Quote.
@@ -91,21 +91,21 @@ def try_do_add_quote(
     the failure message (if there is one).
     """
 
-    quote = quotee_msg.text
+    quote = author_msg.text
     assert quote is not None
 
-    quotee = quotee_msg.from_user
-    assert quotee is not None
+    author = author_msg.from_user
+    assert author is not None
 
     quoter = quoter_msg.from_user
     assert quoter is not None
 
     # XXX(mwp): to enforce constraint that a quote be associated with one chat
     # make sure both messages involved come from that same chat
-    if quotee_msg.chat.id != quoter_msg.chat.id:
+    if author_msg.chat.id != quoter_msg.chat.id:
         return (False, "Quoted message must come from same chat")
 
-    chat_id = quotee_msg.chat.id
+    chat_id = author_msg.chat.id
 
     raw = quote.encode("utf-8")
     if len(raw) > QUOTE_MAX_LEN:
@@ -116,7 +116,7 @@ def try_do_add_quote(
 
     # XXX(mwp): check to see if the message being quoted (the addee) has already
     # been quoted before
-    cur.execute("SELECT id FROM QUOTES WHERE quotee_msg_id = ?", (quotee_msg.id,))
+    cur.execute("SELECT id FROM QUOTES WHERE author_msg_id = ?", (author_msg.id,))
     res: tuple[int] | None = cur.fetchone()
 
     if res is not None:
@@ -127,7 +127,7 @@ def try_do_add_quote(
 
     # XXX(mwp): check to see if the message being quoted has itself been used to
     # quote another thing
-    cur.execute("SELECT id FROM QUOTES WHERE quoter_msg_id = ?", (quotee_msg.id,))
+    cur.execute("SELECT id FROM QUOTES WHERE quoter_msg_id = ?", (author_msg.id,))
     res = cur.fetchone()
 
     if res is not None:
@@ -137,12 +137,12 @@ def try_do_add_quote(
         return (False, "Message has been used to quote another message!")
 
     cur.execute(
-        "INSERT INTO QUOTES (tg_chat_id, quotee_tg_id, quotee_msg_sent_at, quotee_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO QUOTES (tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (
             chat_id,
-            quotee.id,
-            quotee_msg.date.isoformat(),
-            quotee_msg.id,
+            author.id,
+            author_msg.date.isoformat(),
+            author_msg.id,
             quoter.id,
             quoter_msg.date.isoformat(),
             quoter_msg.id,

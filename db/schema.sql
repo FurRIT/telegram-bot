@@ -16,9 +16,9 @@ CREATE TABLE USERS(
 CREATE TABLE QUOTES(
     id                  INTEGER PRIMARY KEY,
     tg_chat_id          INTEGER NOT NULL,
-    quotee_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
-    quotee_msg_sent_at  TEXT,
-    quotee_msg_id       INTEGER UNIQUE,
+    author_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
+    author_msg_sent_at  TEXT,
+    author_msg_id       INTEGER UNIQUE,
     quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quoter_msg_sent_at  TEXT NOT NULL,
     quoter_msg_id       INTEGER,

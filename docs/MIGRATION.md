@@ -78,9 +78,9 @@ CREATE TABLE "QUOTES" (
 
 | Column         | Description            |
 | -------------- | ---------------------- |
-| `Quote_Author` | Quotee's Telegram ID   |
+| `Quote_Author` | Author's Telegram ID   |
 | `quote`        | Quote content          |
-| `date_issued`  | Date Quotee was Quoted |
+| `date_issued`  | Date Author was Quoted |
 | `issued_by_id` | Quoter's Telegram ID   |
 | `Chat_ID`      | Source chat identifier |
 | `NSFW`         | 0 or 1; NSFW status.   |
@@ -90,9 +90,9 @@ CREATE TABLE "QUOTES" (
 ```
 [NONE]              -> id
 Chat_ID             -> tg_chat_id
-Quote_Author        -> quotee_tg_id
-[NONE]              -> quotee_msg_sent_at
-[NONE]              -> quotee_msg_id
+Quote_Author        -> author_tg_id
+[NONE]              -> author_msg_sent_at
+[NONE]              -> author_msg_id
 issued_by_id        -> quoter_tg_id
 date_issued         -> quoter_msg_sent_at
 [NONE]              -> quoter_msg_id
@@ -105,9 +105,9 @@ quote               -> quote
 CREATE TABLE QUOTES(
     id                  INTEGER PRIMARY KEY,
     tg_chat_id          INTEGER NOT NULL,
-    quotee_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
-    quotee_msg_sent_at  TEXT NOT NULL,
-    quotee_msg_id       INTEGER NOT NULL UNIQUE,
+    author_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
+    author_msg_sent_at  TEXT NOT NULL,
+    author_msg_id       INTEGER NOT NULL UNIQUE,
     quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quoter_msg_sent_at  TEXT NOT NULL,
     quoter_msg_id       INTEGER NOT NULL,
@@ -116,16 +116,16 @@ CREATE TABLE QUOTES(
 ```
 
 However, this new schema has hard `NOT NULL` constraints in place that are not
-compatible with missing values in `quotee_msg_sent_at`, `quotee_msg_id`, and
+compatible with missing values in `author_msg_sent_at`, `author_msg_id`, and
 `quoter_msg_id`. So, it was adjusted to,
 
 ```sql
 CREATE TABLE QUOTES(
     id                  INTEGER PRIMARY KEY,
     tg_chat_id          INTEGER NOT NULL,
-    quotee_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
-    quotee_msg_sent_at  TEXT,
-    quotee_msg_id       INTEGER UNIQUE,
+    author_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
+    author_msg_sent_at  TEXT,
+    author_msg_id       INTEGER UNIQUE,
     quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quoter_msg_sent_at  TEXT NOT NULL,
     quoter_msg_id       INTEGER,

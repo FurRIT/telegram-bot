@@ -552,17 +552,29 @@ async def daily_e(bot: Bot):
 
 
 COMMAND_HANDLERS = [
-    ("commands", cmd_commands),
-    ("links", cmd_links),
-    ("chats", cmd_chats),
-    ("channels_sfw", cmd_channels_sfw),
-    ("channels_nsfw", cmd_channels_nsfw),
-    ("rules", cmd_rules),
-    ("addquote", cmd_addquote),
-    ("pan", cmd_pan),
-    ("fine", cmd_fine),
-    ("unfine", cmd_unfine),
-    ("barn", cmd_barn),
+    ("commands", cmd_commands, "Get the list of commands."),
+    ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
+    ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
+    (
+        "channels_sfw",
+        cmd_channels_sfw,
+        "Get a list of SFW FurRIT-affiliated channels and chats.",
+    ),
+    (
+        "channels_nsfw",
+        cmd_channels_nsfw,
+        "Get a list of NSFW FurRIT-affiliated channels and chats.",
+    ),
+    ("rules", cmd_rules, "Get a list of chat rules and membership policies."),
+    (
+        "addquote",
+        cmd_addquote,
+        "Use as a reply to a text message to add it to the database of FurRIT quotes.",
+    ),
+    ("pan", cmd_pan, "Use as a reply to pan a User."),
+    ("barn", cmd_barn, "Use as a reply to barn a User."),
+    ("fine", cmd_fine, "Use as a reply to manually fine a User."),
+    ("unfine", cmd_unfine, "User as a reply to remove a fine from a User."),
 ]
 
 
@@ -606,7 +618,7 @@ def main() -> None:
         args=[application.bot],  # Pass bot context
     )
 
-    for command, callback in COMMAND_HANDLERS:
+    for command, callback, _ in COMMAND_HANDLERS:
         handler = CommandHandler(command, callback)
         application.add_handler(handler)
 

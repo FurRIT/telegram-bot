@@ -78,7 +78,7 @@ def add_pan_count(tg_id: int) -> None:
     con.close()
 
 
-QUOTE_MAX_LEN = 512
+QUOTE_MAX_LEN = 3584
 
 
 def try_do_add_quote(

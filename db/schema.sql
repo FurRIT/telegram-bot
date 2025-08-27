@@ -22,5 +22,5 @@ CREATE TABLE QUOTES(
     quoter_tg_id        INTEGER REFERENCES USERS(tg_id) NOT NULL,
     quoter_msg_sent_at  TEXT NOT NULL,
     quoter_msg_id       INTEGER,
-    quote               VARCHAR(512) NOT NULL
+    quote               VARCHAR(3584) NOT NULL
 );

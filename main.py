@@ -483,7 +483,7 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def cmd_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Add a message to the quotes database.
     Cannot quote yourself or the bot.
@@ -553,7 +553,7 @@ COMMAND_HANDLERS = [
     ("channels_sfw", cmd_channels_sfw),
     ("channels_nsfw", cmd_channels_nsfw),
     ("rules", cmd_rules),
-    ("quote", cmd_quote),
+    ("addquote", cmd_add_quote),
     ("pan", cmd_pan),
     ("fine", cmd_fine),
     ("unfine", cmd_unfine),

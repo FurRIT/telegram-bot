@@ -250,19 +250,3 @@ def do_forgive_fine(
     con.close()
 
     return (True, next_fines)
-
-
-def get_quotes():
-    """
-    Get all Quotes.
-    """
-    con = connect()
-    cur = con.cursor()
-
-    cur.execute("SELECT * FROM QUOTES")
-    res = cur.fetchall()
-
-    cur.close()
-    con.close()
-
-    return res

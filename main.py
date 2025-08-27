@@ -23,7 +23,6 @@ from telegram.ext import (
 from db.users import (
     add_update_tg_user,
     add_pan_count,
-    get_quotes,
     incr_fine_awoo,
     do_forgive_fine,
     do_fine_user,

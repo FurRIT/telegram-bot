@@ -94,11 +94,13 @@ def _legacy_user_to_user(legacy_user: LegacyUser) -> User:
     if fines is None:
         fines = 0
 
+    n_awoo = fines // 350
+
     n_pan = pan_count
     if n_pan is None:
         n_pan = 0
 
-    return User(tg_id, tg_first_name, tg_last_name, tg_username, fines, 0, n_pan)
+    return User(tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan)
 
 
 def _raw_quote_to_legacy_quote(raw: Any) -> LegacyQuote:

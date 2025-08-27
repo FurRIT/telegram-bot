@@ -547,17 +547,17 @@ async def daily_e(bot: Bot):
 
 
 COMMAND_HANDLERS = [
+    ("commands", cmd_commands),
+    ("links", cmd_links),
+    ("chats", cmd_chats),
+    ("channels_sfw", cmd_channels_sfw),
+    ("channels_nsfw", cmd_channels_nsfw),
+    ("rules", cmd_rules),
+    ("quote", cmd_quote),
     ("pan", cmd_pan),
     ("fine", cmd_fine),
     ("unfine", cmd_unfine),
     ("barn", cmd_barn),
-    ("quote", cmd_quote),
-    ("commands", cmd_commands),
-    ("channels_sfw", cmd_channels_sfw),
-    ("channels_nsfw", cmd_channels_nsfw),
-    ("rules", cmd_rules),
-    ("chats", cmd_chats),
-    ("links", cmd_links),
 ]
 
 

@@ -25,7 +25,8 @@ def exec_sql_file(path: str) -> None:
     cur = conn.cursor()
 
     with open(path, "r", encoding="utf-8") as file:
-        cur.execute(file.read())
+        text = file.read()
+    cur.executescript(text)
 
     conn.commit()
     conn.close()

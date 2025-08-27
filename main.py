@@ -431,13 +431,18 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # XXX(mwp): make sure the user we're about to unfine is registered
     add_update_tg_user(user_to_unfine)
 
-    cfines = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
-    assert cfines is not None
+    ok, cfines_or_msg = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
+    if not ok:
+        await message.reply_text(
+            text=f"Cannot forgive ${MANUAL_UNFINE_COST} without becoming negative!"
+        )
+        return
 
+    assert isinstance(cfines_or_msg, int)
     await message.reply_text(
         text=f"""Forgiving ${MANUAL_UNFINE_COST} from {user_to_unfine.first_name}.
 
-{user_to_unfine.first_name}'s current fines ${cfines}""",
+{user_to_unfine.first_name}'s current fines ${cfines_or_msg}""",
         reply_to_message_id=to_reply_to,
     )
 

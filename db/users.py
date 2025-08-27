@@ -39,15 +39,39 @@ def rebuild_tables() -> None:
 
 def try_get_user_by_tg_username(tg_username: str) -> UserRow | None:
     """
-    Try to get a UserRow by the Telegram username.
+    Try to get a UserRow by the Telegram Username.
     """
 
     con = connect()
     cur = con.cursor()
 
     cur.execute(
-        "SELECT id, tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan FROM USERS WHERE tg_username = ?",
+        "SELECT id, tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan FROM USERS WHERE tg_username = ? LIMIT 1",
         (tg_username,),
+    )
+    row: tuple[int, int, str, str | None, str | None, int, int, int] | None = (
+        cur.fetchone()
+    )
+
+    if row is None:
+        return None
+
+    cur.close()
+    con.close()
+
+    return UserRow(*row)
+
+
+def try_get_user_by_tg_id(tg_id: int) -> UserRow | None:
+    """
+    Try to get a UserRow by their Telegram Identifier.
+    """
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT id, tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan FROM USERS WHERE tg_id = ? LIMIT 1",
+        (tg_id,),
     )
     row: tuple[int, int, str, str | None, str | None, int, int, int] | None = (
         cur.fetchone()

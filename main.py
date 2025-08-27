@@ -483,17 +483,6 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def cmd_get_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A test command (will not be deployed) that gets the list of all the quotes in the database.
-    author: Caden
-    :param update:
-    :param context:
-    :return:
-    """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=get_quotes())
-
-
 async def cmd_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Add a message to the quotes database.
@@ -557,22 +546,11 @@ async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
 
-async def cmd_getc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    assert message is not None
-
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    await message.reply_text(f"Chat ID: `{effective_chat.id}`", parse_mode="Markdown")
-
-
 COMMAND_HANDLERS = [
     ("pan", cmd_pan),
     ("fine", cmd_fine),
     ("unfine", cmd_unfine),
     ("barn", cmd_barn),
-    ("get_quotes", cmd_get_quotes),
     ("quote", cmd_quote),
     ("commands", cmd_commands),
     ("channels_sfw", cmd_channels_sfw),
@@ -580,7 +558,6 @@ COMMAND_HANDLERS = [
     ("rules", cmd_rules),
     ("chats", cmd_chats),
     ("links", cmd_links),
-    ("getc", cmd_getc),
 ]
 
 

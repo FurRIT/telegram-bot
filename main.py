@@ -17,6 +17,7 @@ from telegram.ext import (
     ContextTypes,
     CommandHandler,
     MessageHandler,
+    Application,
     filters,
 )
 from db.users import (
@@ -591,10 +592,20 @@ def main() -> None:
     admin_cid = int(raw_admin_cid)
 
     bot_token = os.environ["BOT_TOKEN"]
-    application = ApplicationBuilder().token(bot_token).build()
 
-    # NOTE: store the data into the bot datastore for access in handlers
-    application.bot_data["ADMIN_CID"] = admin_cid
+    descriptors: list[tuple[str, str]] = []
+    for command, _, description in COMMAND_HANDLERS:
+        descriptor = (command, description)
+        descriptors.append(descriptor)
+
+    builder = ApplicationBuilder().token(bot_token)
+
+    async def post_init(application: Application) -> None:
+        application.bot_data["ADMIN_CID"] = admin_cid
+        await application.bot.set_my_commands(descriptors)
+
+    builder.post_init(post_init)
+    application = builder.build()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(

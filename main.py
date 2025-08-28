@@ -642,6 +642,11 @@ COMMAND_HANDLERS = [
         cmd_addquote,
         "Use as a reply to a text message to add it to the database of FurRIT quotes.",
     ),
+    (
+        "getquote",
+        cmd_getquote,
+        "[@USER] [SEARCH QUERY] to get a random quote; includes options to search by user and/or text content.",
+    ),
     ("pan", cmd_pan, "Use as a reply to pan a User."),
     ("barn", cmd_barn, "Use as a reply to barn a User."),
     ("fine", cmd_fine, "Use as a reply to manually fine a User."),

@@ -23,12 +23,15 @@ from telegram.ext import (
 import telegram.helpers
 
 from db.users import (
+    get_user_fines,
     add_update_tg_user,
     add_pan_count,
     incr_fine_awoo,
     do_forgive_fine,
     do_fine_user,
     try_do_add_quote,
+    try_get_user_by_tg_id,
+    try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
 from db.quotes import (
@@ -681,6 +684,48 @@ async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
 
 
+async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
+    """
+    Awoo Fines Command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, _ = _parse_optional_username(text)
+
+    # XXX(mwp): ensure that the Telegram User is in the database
+    add_update_tg_user(from_user)
+
+    if m_username is None:
+        user = try_get_user_by_tg_id(from_user.id)
+        assert user is not None
+    else:
+        user = try_get_user_by_tg_username(m_username)
+        if user is None:
+            await effective_chat.send_message(
+                "Could not find a user with that username."
+            )
+            return
+
+    fines = get_user_fines(user.id)
+    if fines == 0:
+        reply = f"{user.tg_first_name} doesn't have any fines!"
+    else:
+        reply = f"{user.tg_first_name}'s current fines total ${fines}."
+
+    reply_esc = telegram.helpers.escape_markdown(reply, version=2)
+    await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
+
+
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
@@ -714,6 +759,11 @@ COMMAND_HANDLERS = [
         "quotestats",
         cmd_quotestats,
         "[@USER] to get the total number of quotes added and authored; if a user is specified, stats are only shown for that user.",
+    ),
+    (
+        "awoofines",
+        cmd_awoofines,
+        "[@USER] for your current total awoo fines owed; if a username is specified, fines for that user are shown instead.",
     ),
     ("pan", cmd_pan, "Use as a reply to pan a User."),
     ("barn", cmd_barn, "Use as a reply to barn a User."),

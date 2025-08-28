@@ -27,7 +27,7 @@ class QuoteRow(NamedTuple):
 
 
 def search_quotes(
-    query: str, username: str | None = None
+    query: str, tg_chat_id: int, username: str | None = None
 ) -> tuple[UserRow, QuoteRow] | None:
     """
     Search Quotes table for a Quote.
@@ -48,8 +48,11 @@ def search_quotes(
     safe_for_like = f"%{safe_query}%"
 
     cur.execute(
-        f"SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES WHERE{extra_where_clause} quote LIKE ? LIMIT 1",
-        (safe_for_like,),
+        f"SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES WHERE{extra_where_clause} tg_chat_id = ? AND quote LIKE ? LIMIT 1",
+        (
+            tg_chat_id,
+            safe_for_like,
+        ),
     )
     row: (
         tuple[int, int, int, str | None, int | None, int, str, int | None, str] | None
@@ -69,7 +72,7 @@ def search_quotes(
     return (user_row, quote_row)
 
 
-def random_quote() -> tuple[UserRow, QuoteRow] | None:
+def random_quote(tg_chat_id: int) -> tuple[UserRow, QuoteRow] | None:
     """
     Get a random Quote from the database.
     """
@@ -78,7 +81,8 @@ def random_quote() -> tuple[UserRow, QuoteRow] | None:
     cur = con.cursor()
 
     cur.execute(
-        "SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES ORDER BY RANDOM() LIMIT 1",
+        "SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES WHERE tg_chat_id = ? ORDER BY RANDOM() LIMIT 1",
+        (tg_chat_id,),
     )
 
     row: (

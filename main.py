@@ -599,11 +599,11 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     m_username, remaining = _parse_optional_username(text)
 
     if m_username is None:
-        user_quote = random_quote()
+        user_quote = random_quote(effective_chat.id)
         retries = 0
 
         while user_quote is None and retries != GET_QUOTE_MAX_RETRIES:
-            user_quote = random_quote()
+            user_quote = random_quote(effective_chat.id)
             retries += 1
 
         if user_quote is None or retries == GET_QUOTE_MAX_RETRIES:
@@ -613,7 +613,7 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
     else:
         stripped = remaining.strip()
-        user_quote = search_quotes(stripped, username=m_username)
+        user_quote = search_quotes(stripped, effective_chat.id, username=m_username)
         if user_quote is None:
             await message.reply_text(
                 text="Could not find a Quote that matched that criteria."

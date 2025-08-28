@@ -4,6 +4,7 @@ Quote handling utilities.
 
 from typing import NamedTuple
 import re
+import dataclasses
 
 from db.utils import connect
 from db.users import UserRow, try_get_user_by_tg_id, try_get_user_by_tg_username
@@ -96,3 +97,66 @@ def random_quote() -> tuple[UserRow, QuoteRow] | None:
         return None
 
     return (user_row, quote_row)
+
+
+@dataclasses.dataclass(frozen=True)
+class QuoteStats:
+    """
+    Summarized Quote Statistics.
+    """
+
+    quote_count: int
+    top_quoted: list[tuple[UserRow, int]]
+    top_adders: list[tuple[UserRow, int]]
+
+
+def derive_quote_stats() -> QuoteStats:
+    """
+    Pull data for a leaderboard of:
+    - Total Number Of Quotes
+    - Total Times Quoted (most appearances in QUOTES.author_tg_id)
+    - Total Quotes Added (most appearances in QUOTES.quoter_tg_id)
+    """
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute("SELECT COUNT(id) FROM QUOTES")
+    quote_count_row: tuple[int] | None = cur.fetchone()
+
+    assert quote_count_row is not None
+    quote_count, *_ = quote_count_row
+
+    cur.close()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT author_tg_id, COUNT(*) as occurences FROM QUOTES WHERE author_tg_id IN (SELECT tg_id FROM USERS) GROUP BY author_tg_id ORDER BY occurences DESC LIMIT 5"
+    )
+    top_quoted_rows: list[tuple[int, int]] = cur.fetchall()
+
+    top_quoted = []
+    for tg_id, count in top_quoted_rows:
+        user = try_get_user_by_tg_id(tg_id)
+        assert user is not None
+
+        top_quoted.append((user, count))
+
+    cur.close()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT quoter_tg_id, COUNT(*) as occurences FROM QUOTES WHERE quoter_tg_id IN (SELECT tg_id FROM USERS) GROUP BY quoter_tg_id ORDER BY occurences DESC LIMIT 5"
+    )
+    top_adders_rows: list[tuple[int, int]] = cur.fetchall()
+
+    top_adders = []
+    for tg_id, count in top_adders_rows:
+        user = try_get_user_by_tg_id(tg_id)
+        assert user is not None
+
+        top_adders.append((user, count))
+
+    cur.close()
+    con.close()
+
+    return QuoteStats(quote_count, top_quoted, top_adders)

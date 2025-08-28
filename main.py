@@ -61,6 +61,33 @@ async def _random_sticker_pack_sticker(
     return random.choice(file_ids)
 
 
+PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
+
+
+def _parse_optional_user(text: str) -> tuple[str | None, str]:
+    """
+    Parse the text of a Telegram Message, assuming that if the first word is
+    prefixed with @[a-zA-Z0-9] it is username argument.
+
+    Returns (username, extra_text)
+    """
+
+    space_after_cmd_idx = text.find(" ")
+    if space_after_cmd_idx == -1:
+        return (None, "")
+
+    txt_after_cmd = text[(space_after_cmd_idx + 1) :]
+
+    username_match = PARSE_OPTIONAL_USERNAME_RE.match(txt_after_cmd)
+    if username_match is None:
+        return (None, txt_after_cmd)
+
+    username = username_match[1]
+    query = username_match[2]
+
+    return (username, query)
+
+
 AT_ADMIN_RE = re.compile(r"@admin")
 
 

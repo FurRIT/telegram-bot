@@ -117,32 +117,27 @@ async def search_handle_at_admin(
 
     admin_cid = context.bot_data["ADMIN_CID"]
 
-    # TODO: sent some sort of message indicating that @admin must be a reply; or
-    # handle the case where it is not a reply; still returns True to indicate an
-    # @admin match
-    if message.reply_to_message is None:
-        return True
-    reply_to = message.reply_to_message
-
-    assert message.from_user is not None
-
     await context.bot.send_message(
         chat_id=effective_chat.id, text="Contacting the admin team"
     )
+
+    if message.reply_to_message is None:
+        message_to_forward = message
+    else:
+        message_to_forward = message.reply_to_message
+
     await context.bot.forward_message(
         chat_id=admin_cid,
-        from_chat_id=reply_to.chat_id,
-        message_id=reply_to.message_id,
+        from_chat_id=message_to_forward.chat_id,
+        message_id=message_to_forward.message_id,
     )
+
+    assert message.from_user is not None
     await context.bot.send_message(
         chat_id=admin_cid,
-        text=f"Attention requested in '{reply_to.chat.title}' by {message.from_user.first_name}",
+        text=f"Attention requested in '{message_to_forward.chat.title}' by {message.from_user.first_name}",
     )
-    await context.bot.forward_message(
-        chat_id=admin_cid,
-        from_chat_id=reply_to.chat_id,
-        message_id=message.message_id,
-    )
+
     return True
 
 

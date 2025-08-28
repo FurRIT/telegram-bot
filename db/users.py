@@ -310,3 +310,22 @@ def do_forgive_fine(
     con.close()
 
     return (True, next_fines)
+
+
+def get_user_fines(uid: int) -> int:
+    """
+    Fetch a User's Fines.
+    """
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute("SELECT fines FROM USERS WHERE id = ?", (uid,))
+
+    res: tuple[int] | None = cur.fetchone()
+    cur.close()
+    con.close()
+
+    assert res is not None
+    fines = res[0]
+
+    return fines

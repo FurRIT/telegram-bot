@@ -20,6 +20,8 @@ from telegram.ext import (
     Application,
     filters,
 )
+import telegram.helpers
+
 from db.users import (
     add_update_tg_user,
     add_pan_count,
@@ -28,6 +30,10 @@ from db.users import (
     do_fine_user,
     try_do_add_quote,
     AWOO_FINE_COST,
+)
+from db.quotes import (
+    search_quotes,
+    random_quote,
 )
 from messages import (
     LINKS_MESSAGE,
@@ -545,6 +551,71 @@ async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not ok:
         assert err_msg is not None
         await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
+
+
+GET_QUOTE_MAX_RETRIES = 5
+GET_QUOTE_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
+
+
+async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Get quote command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    # INVARIANT(mwp): the first word is the bot command
+    space_after_cmd_idx = text.find(" ")
+    if space_after_cmd_idx == -1:
+        after_cmd = None
+    else:
+        after_cmd = text[(space_after_cmd_idx + 1) :]
+
+    # XXX(mwp): if there's nothing after the command we'll just try to get a
+    # random quote; we retry because it is possible for the quotes table to
+    # include references that do not exist making the user value None
+    if after_cmd is None:
+        user_quote = random_quote()
+        retries = 0
+
+        while user_quote is None and retries != GET_QUOTE_MAX_RETRIES:
+            user_quote = random_quote()
+            retries += 1
+
+        if user_quote is None or retries == GET_QUOTE_MAX_RETRIES:
+            await message.reply_text(
+                text="Could not find a random Quote, please try again!"
+            )
+            return
+    else:
+        user_match = GET_QUOTE_USERNAME_RE.match(after_cmd)
+        username = user_match[1] if user_match is not None else None
+
+        query = user_match[2] if user_match is not None else after_cmd.strip()
+        user_quote = search_quotes(query, username)
+
+        if user_quote is None:
+            await message.reply_text(
+                text="Could not find a Quote that matched that criteria."
+            )
+            return
+
+    user, quote = user_quote
+
+    date = datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date_fmted = date.strftime("%b %d %Y")
+
+    response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'
+    response_esc = telegram.helpers.escape_markdown(response, version=2)
+    response_esc += f"_{date_fmted}_"
+
+    await effective_chat.send_message(response_esc, parse_mode="MarkdownV2")
 
 
 async def daily_e(bot: Bot):

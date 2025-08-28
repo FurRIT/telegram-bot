@@ -61,7 +61,7 @@ async def _random_sticker_pack_sticker(
     return random.choice(file_ids)
 
 
-PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
+PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([_\-a-zA-Z0-9]*)(.*)")
 
 
 def _parse_optional_username(text: str) -> tuple[str | None, str]:

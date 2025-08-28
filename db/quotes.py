@@ -35,9 +35,10 @@ def search_quotes(
 
     if username is not None:
         user_row = try_get_user_by_tg_username(username)
+        if user_row is None:
+            return None
 
-        if user_row is not None:
-            extra_where_clause += f" author_tg_id = {user_row.tg_id} AND"
+        extra_where_clause += f" author_tg_id = {user_row.tg_id} AND"
 
     con = connect()
     cur = con.cursor()

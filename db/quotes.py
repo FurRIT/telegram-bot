@@ -160,3 +160,37 @@ def derive_quote_stats() -> QuoteStats:
     con.close()
 
     return QuoteStats(quote_count, top_quoted, top_adders)
+
+
+def derive_user_quote_stats(username: str) -> tuple[int, int] | None:
+    """
+    Pull data for a for a user for:
+    - Total Times Quoted
+    - Total Quotes Added
+
+    Returns (times_quotes_authored, times_quotes_from_others_added)
+    """
+    user = try_get_user_by_tg_username(username)
+    if user is None:
+        return None
+
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute("SELECT COUNT(id) FROM QUOTES WHERE author_tg_id = ?", (user.tg_id,))
+    author_row: tuple[int] | None = cur.fetchone()
+
+    author_count = author_row[0] if author_row is not None else 0
+    cur.close()
+
+    cur = con.cursor()
+
+    cur.execute("SELECT COUNT(id) FROM QUOTES WHERE quoter_tg_id = ?", (user.tg_id,))
+    quoter_row: tuple[int] | None = cur.fetchone()
+
+    quoter_count = quoter_row[0] if quoter_row is not None else 0
+    cur.close()
+
+    con.close()
+
+    return (author_count, quoter_count)

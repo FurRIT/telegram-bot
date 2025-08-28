@@ -64,7 +64,7 @@ async def _random_sticker_pack_sticker(
 PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
 
 
-def _parse_optional_user(text: str) -> tuple[str | None, str]:
+def _parse_optional_username(text: str) -> tuple[str | None, str]:
     """
     Parse the text of a Telegram Message, assuming that if the first word is
     prefixed with @[a-zA-Z0-9] it is username argument.
@@ -583,7 +583,6 @@ async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 GET_QUOTE_MAX_RETRIES = 5
-GET_QUOTE_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
 
 
 async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -599,17 +598,9 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    # INVARIANT(mwp): the first word is the bot command
-    space_after_cmd_idx = text.find(" ")
-    if space_after_cmd_idx == -1:
-        after_cmd = None
-    else:
-        after_cmd = text[(space_after_cmd_idx + 1) :]
+    m_username, remaining = _parse_optional_username(text)
 
-    # XXX(mwp): if there's nothing after the command we'll just try to get a
-    # random quote; we retry because it is possible for the quotes table to
-    # include references that do not exist making the user value None
-    if after_cmd is None:
+    if m_username is None:
         user_quote = random_quote()
         retries = 0
 
@@ -623,12 +614,8 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
     else:
-        user_match = GET_QUOTE_USERNAME_RE.match(after_cmd)
-        username = user_match[1] if user_match is not None else None
-
-        query = user_match[2] if user_match is not None else after_cmd.strip()
-        user_quote = search_quotes(query, username)
-
+        stripped = remaining.strip()
+        user_quote = search_quotes(stripped, username=m_username)
         if user_quote is None:
             await message.reply_text(
                 text="Could not find a Quote that matched that criteria."
@@ -647,9 +634,6 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(response_esc, parse_mode="MarkdownV2")
 
 
-QUOTE_STATS_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
-
-
 async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Quote statistics command.
@@ -663,14 +647,9 @@ async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    # INVARIANT(mwp): the first word is the bot command
-    space_after_cmd_idx = text.find(" ")
-    if space_after_cmd_idx == -1:
-        after_cmd = None
-    else:
-        after_cmd = text[(space_after_cmd_idx + 1) :]
+    m_username, _ = _parse_optional_username(text)
 
-    if after_cmd is None:
+    if m_username is None:
         qs = derive_quote_stats()
 
         prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
@@ -689,20 +668,13 @@ async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = f"{prelude}{total_times_esc}\n*Total Quotes Added*\n{total_quotes_esc}"
         await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
     else:
-        user_match = GET_QUOTE_USERNAME_RE.match(after_cmd)
-        if not user_match:
-            await effective_chat.send_message("Invalid username format!")
-            return
-
-        username = user_match[1]
-        m_triple = derive_user_quote_stats(username)
+        m_triple = derive_user_quote_stats(m_username)
 
         if m_triple is None:
             await effective_chat.send_message(
                 "Could not find Quotes that involve that user."
             )
             return
-
         user, times_quoted, times_added = m_triple
 
         reply = f"*Overall for {user.tg_first_name}*\n\n*Total Times Quoted*\n{times_quoted}\n*Total Quotes Added*\n{times_added}"

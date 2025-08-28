@@ -34,6 +34,8 @@ from db.users import (
 from db.quotes import (
     search_quotes,
     random_quote,
+    derive_quote_stats,
+    derive_user_quote_stats,
 )
 from messages import (
     LINKS_MESSAGE,
@@ -618,6 +620,68 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(response_esc, parse_mode="MarkdownV2")
 
 
+QUOTE_STATS_USERNAME_RE = re.compile(r"^@([a-zA-Z0-9]*)(.*)")
+
+
+async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Quote statistics command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    # INVARIANT(mwp): the first word is the bot command
+    space_after_cmd_idx = text.find(" ")
+    if space_after_cmd_idx == -1:
+        after_cmd = None
+    else:
+        after_cmd = text[(space_after_cmd_idx + 1) :]
+
+    if after_cmd is None:
+        qs = derive_quote_stats()
+
+        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
+
+        total_times = ""
+        for user, count in qs.top_adders:
+            total_times += f"• {count}: {user.tg_first_name}\n"
+
+        total_quotes = ""
+        for user, count in qs.top_adders:
+            total_quotes += f"• {count}: {user.tg_first_name}\n"
+
+        total_times_esc = telegram.helpers.escape_markdown(total_times, version=2)
+        total_quotes_esc = telegram.helpers.escape_markdown(total_quotes, version=2)
+
+        reply = f"{prelude}{total_times_esc}\n*Total Quotes Added*\n{total_quotes_esc}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+    else:
+        user_match = GET_QUOTE_USERNAME_RE.match(after_cmd)
+        if not user_match:
+            await effective_chat.send_message("Invalid username format!")
+            return
+
+        username = user_match[1]
+        m_triple = derive_user_quote_stats(username)
+
+        if m_triple is None:
+            await effective_chat.send_message(
+                "Could not find Quotes that involve that user."
+            )
+            return
+
+        user, times_quoted, times_added = m_triple
+
+        reply = f"*Overall for {user.tg_first_name}*\n\n*Total Times Quoted*\n{times_quoted}\n*Total Quotes Added*\n{times_added}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+
+
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
@@ -646,6 +710,11 @@ COMMAND_HANDLERS = [
         "getquote",
         cmd_getquote,
         "[@USER] [SEARCH QUERY] to get a random quote; includes options to search by user and/or text content.",
+    ),
+    (
+        "quotestats",
+        cmd_quotestats,
+        "[@USER] to get the total number of quotes added and authored; if a user is specified, stats are only shown for that user.",
     ),
     ("pan", cmd_pan, "Use as a reply to pan a User."),
     ("barn", cmd_barn, "Use as a reply to barn a User."),

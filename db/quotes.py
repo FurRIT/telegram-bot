@@ -162,7 +162,7 @@ def derive_quote_stats() -> QuoteStats:
     return QuoteStats(quote_count, top_quoted, top_adders)
 
 
-def derive_user_quote_stats(username: str) -> tuple[int, int] | None:
+def derive_user_quote_stats(username: str) -> tuple[UserRow, int, int] | None:
     """
     Pull data for a for a user for:
     - Total Times Quoted
@@ -193,4 +193,4 @@ def derive_user_quote_stats(username: str) -> tuple[int, int] | None:
 
     con.close()
 
-    return (author_count, quoter_count)
+    return (user, author_count, quoter_count)

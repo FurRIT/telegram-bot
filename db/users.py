@@ -2,6 +2,7 @@
 User handling utilities.
 """
 
+from typing import Literal
 import os
 
 import telegram
@@ -220,7 +221,9 @@ def incr_fine_awoo(tg_id: int) -> int | None:
     return fines + AWOO_FINE_COST
 
 
-def do_forgive_fine(tg_id: int, amount: int) -> int | None:
+def do_forgive_fine(
+    tg_id: int, amount: int
+) -> tuple[Literal[True], int] | tuple[Literal[False], str]:
     """
     Forgive a fine of some amount.
     """
@@ -232,7 +235,13 @@ def do_forgive_fine(tg_id: int, amount: int) -> int | None:
     if res is None:
         cur.close()
         con.close()
-        return None
+        return (False, "User does not exist!")
+
+    fines = res[0]
+    next_fines = fines - amount
+
+    if next_fines < 0:
+        return (False, "Fines would become negative!")
 
     cur.execute("UPDATE USERS SET fines = fines - ? WHERE tg_id = ?", (amount, tg_id))
 
@@ -240,21 +249,4 @@ def do_forgive_fine(tg_id: int, amount: int) -> int | None:
     cur.close()
     con.close()
 
-    fines = res[0]
-    return fines - amount
-
-
-def get_quotes():
-    """
-    Get all Quotes.
-    """
-    con = connect()
-    cur = con.cursor()
-
-    cur.execute("SELECT * FROM QUOTES")
-    res = cur.fetchall()
-
-    cur.close()
-    con.close()
-
-    return res
+    return (True, next_fines)

@@ -17,12 +17,12 @@ from telegram.ext import (
     ContextTypes,
     CommandHandler,
     MessageHandler,
+    Application,
     filters,
 )
 from db.users import (
     add_update_tg_user,
     add_pan_count,
-    get_quotes,
     incr_fine_awoo,
     do_forgive_fine,
     do_fine_user,
@@ -431,13 +431,18 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # XXX(mwp): make sure the user we're about to unfine is registered
     add_update_tg_user(user_to_unfine)
 
-    cfines = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
-    assert cfines is not None
+    ok, cfines_or_msg = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
+    if not ok:
+        await message.reply_text(
+            text=f"Cannot forgive ${MANUAL_UNFINE_COST} without becoming negative!"
+        )
+        return
 
+    assert isinstance(cfines_or_msg, int)
     await message.reply_text(
         text=f"""Forgiving ${MANUAL_UNFINE_COST} from {user_to_unfine.first_name}.
 
-{user_to_unfine.first_name}'s current fines ${cfines}""",
+{user_to_unfine.first_name}'s current fines ${cfines_or_msg}""",
         reply_to_message_id=to_reply_to,
     )
 
@@ -483,18 +488,7 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def cmd_get_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A test command (will not be deployed) that gets the list of all the quotes in the database.
-    author: Caden
-    :param update:
-    :param context:
-    :return:
-    """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=get_quotes())
-
-
-async def cmd_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Add a message to the quotes database.
     Cannot quote yourself or the bot.
@@ -557,30 +551,30 @@ async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
 
-async def cmd_getc(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    assert message is not None
-
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    await message.reply_text(f"Chat ID: `{effective_chat.id}`", parse_mode="Markdown")
-
-
 COMMAND_HANDLERS = [
-    ("pan", cmd_pan),
-    ("fine", cmd_fine),
-    ("unfine", cmd_unfine),
-    ("barn", cmd_barn),
-    ("get_quotes", cmd_get_quotes),
-    ("quote", cmd_quote),
-    ("commands", cmd_commands),
-    ("channels_sfw", cmd_channels_sfw),
-    ("channels_nsfw", cmd_channels_nsfw),
-    ("rules", cmd_rules),
-    ("chats", cmd_chats),
-    ("links", cmd_links),
-    ("getc", cmd_getc),
+    ("commands", cmd_commands, "Get the list of commands."),
+    ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
+    ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
+    (
+        "channels_sfw",
+        cmd_channels_sfw,
+        "Get a list of SFW FurRIT-affiliated channels and chats.",
+    ),
+    (
+        "channels_nsfw",
+        cmd_channels_nsfw,
+        "Get a list of NSFW FurRIT-affiliated channels and chats.",
+    ),
+    ("rules", cmd_rules, "Get a list of chat rules and membership policies."),
+    (
+        "addquote",
+        cmd_addquote,
+        "Use as a reply to a text message to add it to the database of FurRIT quotes.",
+    ),
+    ("pan", cmd_pan, "Use as a reply to pan a User."),
+    ("barn", cmd_barn, "Use as a reply to barn a User."),
+    ("fine", cmd_fine, "Use as a reply to manually fine a User."),
+    ("unfine", cmd_unfine, "User as a reply to remove a fine from a User."),
 ]
 
 
@@ -597,10 +591,20 @@ def main() -> None:
     admin_cid = int(raw_admin_cid)
 
     bot_token = os.environ["BOT_TOKEN"]
-    application = ApplicationBuilder().token(bot_token).build()
 
-    # NOTE: store the data into the bot datastore for access in handlers
-    application.bot_data["ADMIN_CID"] = admin_cid
+    descriptors: list[tuple[str, str]] = []
+    for command, _, description in COMMAND_HANDLERS:
+        descriptor = (command, description)
+        descriptors.append(descriptor)
+
+    builder = ApplicationBuilder().token(bot_token)
+
+    async def post_init(application: Application) -> None:
+        application.bot_data["ADMIN_CID"] = admin_cid
+        await application.bot.set_my_commands(descriptors)
+
+    builder.post_init(post_init)
+    application = builder.build()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
@@ -624,7 +628,7 @@ def main() -> None:
         args=[application.bot],  # Pass bot context
     )
 
-    for command, callback in COMMAND_HANDLERS:
+    for command, callback, _ in COMMAND_HANDLERS:
         handler = CommandHandler(command, callback)
         application.add_handler(handler)
 

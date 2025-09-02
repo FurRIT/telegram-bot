@@ -48,14 +48,35 @@ def search_quotes(
     safe_for_like = f"%{safe_query}%"
 
     cur.execute(
-        f"SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES WHERE{extra_where_clause} tg_chat_id = ? AND quote LIKE ? LIMIT 1",
+        f"""
+        SELECT
+            quotes.id,
+            quotes.tg_chat_id,
+            quotes.author_tg_id,
+            quotes.author_msg_sent_at,
+            quotes.author_msg_id,
+            quotes.quoter_tg_id,
+            quotes.quoter_msg_sent_at,
+            quotes.quoter_msg_id,
+            quotes.quote,
+            users.tg_id
+        FROM QUOTES
+            JOIN USERS ON quotes.author_tg_id = users.tg_id
+        WHERE
+            {extra_where_clause}
+            tg_chat_id = ? AND
+            quote LIKE ?
+        ORDER BY
+            RANDOM()
+        LIMIT 1""",
         (
             tg_chat_id,
             safe_for_like,
         ),
     )
     row: (
-        tuple[int, int, int, str | None, int | None, int, str, int | None, str] | None
+        tuple[int, int, int, str | None, int | None, int, str, int | None, str, int]
+        | None
     ) = cur.fetchone()
 
     cur.close()
@@ -63,9 +84,15 @@ def search_quotes(
 
     if row is None:
         return None
-    quote_row = QuoteRow(*row)
 
-    user_row = try_get_user_by_tg_id(quote_row.author_tg_id)
+    quote_span: tuple[
+        int, int, int, str | None, int | None, int, str, int | None, str
+    ] = row[:-1]
+    user_span: int = row[-1]
+
+    quote_row = QuoteRow(*quote_span)
+
+    user_row = try_get_user_by_tg_id(user_span)
     if user_row is None:
         return None
 
@@ -81,12 +108,31 @@ def random_quote(tg_chat_id: int) -> tuple[UserRow, QuoteRow] | None:
     cur = con.cursor()
 
     cur.execute(
-        "SELECT id, tg_chat_id, author_tg_id, author_msg_sent_at, author_msg_id, quoter_tg_id, quoter_msg_sent_at, quoter_msg_id, quote FROM QUOTES WHERE tg_chat_id = ? ORDER BY RANDOM() LIMIT 1",
+        """
+        SELECT
+            quotes.id,
+            quotes.tg_chat_id,
+            quotes.author_tg_id,
+            quotes.author_msg_sent_at,
+            quotes.author_msg_id,
+            quotes.quoter_tg_id,
+            quotes.quoter_msg_sent_at,
+            quotes.quoter_msg_id,
+            quotes.quote,
+            users.tg_id
+        FROM QUOTES
+            JOIN USERS on quotes.author_tg_id = users.tg_id
+        WHERE
+            tg_chat_id = ?
+        ORDER BY
+            RANDOM()
+        LIMIT 1""",
         (tg_chat_id,),
     )
 
     row: (
-        tuple[int, int, int, str | None, int | None, int, str, int | None, str] | None
+        tuple[int, int, int, str | None, int | None, int, str, int | None, str, int]
+        | None
     ) = cur.fetchone()
 
     cur.close()
@@ -94,9 +140,14 @@ def random_quote(tg_chat_id: int) -> tuple[UserRow, QuoteRow] | None:
 
     if row is None:
         return None
-    quote_row = QuoteRow(*row)
 
-    user_row = try_get_user_by_tg_id(quote_row.author_tg_id)
+    quote_span: tuple[
+        int, int, int, str | None, int | None, int, str, int | None, str
+    ] = row[:-1]
+    user_span: int = row[-1]
+    quote_row = QuoteRow(*quote_span)
+
+    user_row = try_get_user_by_tg_id(user_span)
     if user_row is None:
         return None
 

@@ -580,9 +580,6 @@ async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
 
 
-GET_QUOTE_MAX_RETRIES = 5
-
-
 async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Get quote command.
@@ -600,23 +597,15 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if m_username is None:
         user_quote = random_quote(effective_chat.id)
-        retries = 0
-
-        while user_quote is None and retries != GET_QUOTE_MAX_RETRIES:
-            user_quote = random_quote(effective_chat.id)
-            retries += 1
-
-        if user_quote is None or retries == GET_QUOTE_MAX_RETRIES:
-            await message.reply_text(
-                text="Could not find a random Quote, please try again!"
-            )
+        if user_quote is None:
+            await message.reply_text(text="Could not find a random Quote!")
             return
     else:
         stripped = remaining.strip()
         user_quote = search_quotes(stripped, effective_chat.id, username=m_username)
         if user_quote is None:
             await message.reply_text(
-                text="Could not find a Quote that matched that criteria."
+                text="Could not find a Quote that matched that criteria!"
             )
             return
 

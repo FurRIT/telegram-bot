@@ -1,47 +1,215 @@
-import logging
-import random
-import re
+"""
+FurRIT Telegram Bot.
+"""
 
+import re
+import os
+import random
+import logging
+from datetime import datetime, timedelta  # imported for /ban method
+
+import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
-from telegram import Update, Bot
+from telegram import Update, Bot, User
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
-    CallbackContext,
     MessageHandler,
+    Application,
     filters,
 )
+import telegram.helpers
+
 from db.users import (
-    add_current_members,
-    get_members,
+    get_user_fines,
+    add_update_tg_user,
     add_pan_count,
-    add_quote_db,
-    get_quotes,
-    add_fine,
-    remove_fine,
-    rebuild_user_tables,
-    add_fines,
+    incr_fine_awoo,
+    do_forgive_fine,
+    do_fine_user,
+    try_do_add_quote,
+    try_get_user_by_tg_id,
+    try_get_user_by_tg_username,
+    AWOO_FINE_COST,
 )
-from datetime import datetime, timedelta  # imported for /ban method
-
-
-"""
-Chat IDs:
-Main: -1001037004907
-Primary test server: -1002047567846
-Admin chat: -1001168121589
-
-"""
+from db.quotes import (
+    search_quotes,
+    random_quote,
+    derive_quote_stats,
+    derive_user_quote_stats,
+)
+from messages import (
+    LINKS_MESSAGE,
+    CHATS_MESSAGE,
+    RULES_MESSAGE,
+    CHANNELS_SFW_MESSAGE,
+    CHANNELS_NSFW_MESSAGE,
+    COMMANDS_MESSAGE,
+)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 
-async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _random_sticker_pack_sticker(
+    name: str, context: ContextTypes.DEFAULT_TYPE
+) -> str:
+    """Get a random sticker from a sticker pack."""
+    stickers = await context.bot.get_sticker_set(name=name)
+    file_ids = [sticker.file_id for sticker in stickers.stickers]
+
+    return random.choice(file_ids)
+
+
+PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([_\-a-zA-Z0-9]*)(.*)")
+
+
+def _parse_optional_username(text: str) -> tuple[str | None, str]:
+    """
+    Parse the text of a Telegram Message, assuming that if the first word is
+    prefixed with @[a-zA-Z0-9] it is username argument.
+
+    Returns (username, extra_text)
+    """
+
+    space_after_cmd_idx = text.find(" ")
+    if space_after_cmd_idx == -1:
+        return (None, "")
+
+    txt_after_cmd = text[(space_after_cmd_idx + 1) :]
+
+    username_match = PARSE_OPTIONAL_USERNAME_RE.match(txt_after_cmd)
+    if username_match is None:
+        return (None, txt_after_cmd)
+
+    username = username_match[1]
+    query = username_match[2]
+
+    return (username, query)
+
+
+AT_ADMIN_RE = re.compile(r"@admin")
+
+
+async def search_handle_at_admin(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle '@admin' in message text.
+
+    Returns whether or not @admin matched.
+    """
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    if message.text is None:
+        return False
+
+    at_admin_match = AT_ADMIN_RE.search(message.text)
+    if at_admin_match is None:
+        return False
+
+    admin_cid = context.bot_data["ADMIN_CID"]
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, text="Contacting the admin team"
+    )
+
+    if message.reply_to_message is None:
+        message_to_forward = message
+    else:
+        message_to_forward = message.reply_to_message
+
+    await context.bot.forward_message(
+        chat_id=admin_cid,
+        from_chat_id=message_to_forward.chat_id,
+        message_id=message_to_forward.message_id,
+    )
+
+    assert message.from_user is not None
+    await context.bot.send_message(
+        chat_id=admin_cid,
+        text=f"Attention requested in '{message_to_forward.chat.title}' by {message.from_user.first_name}",
+    )
+
+    return True
+
+
+AWOO_RE = re.compile(r"[@Aa]+[rwW]+[o0O]+([\s\.\?!,:;\-—\*]+|$)")
+
+
+async def search_handle_awoo(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle 'awoo' in message text.
+
+    Returns whether or not awoo matched.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    if text is None:
+        return False
+
+    awoo_matches = AWOO_RE.findall(text)
+    if len(awoo_matches) == 0:
+        return False
+
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    c_fines = incr_fine_awoo(from_user.id)
+    assert c_fines is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id,
+        text=f"""Don't Awoo! - ${AWOO_FINE_COST} fine!
+
+{from_user.first_name}'s current fines ${c_fines}""",
+    )
+
+    return True
+
+
+VORE_RE = re.compile(r"[Vv]+[Oo0]+[Rr]+[Ee3]+[SszZ]*")
+VORE_STICKER_PACK_NAME = "FJZGIF"
+
+
+async def search_handle_vore(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    """
+    Search for and handle 'vore' in message text.
+
+    Returns whether or not vore matched.
+    """
+    message = update.message
+    assert message is not None
+
+    if message.text is None:
+        return False
+
+    vore_matches = VORE_RE.findall(message.text)
+    if len(vore_matches) == 0:
+        return False
+
+    sticker = await _random_sticker_pack_sticker(VORE_STICKER_PACK_NAME, context)
+    await message.reply_sticker(sticker=sticker, reply_to_message_id=message.message_id)
+    return True
+
+
+async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     If a new user speaks in chat, they are added to the database.
     Waits for 'awoo' to be sent in the chat.
@@ -50,20 +218,37 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :return:
     """
     message = update.message
-    user = message.from_user
-    user_id = user.id
-    username = user.username
-    fname = user.first_name
-    lname = user.last_name
+    if message is None:
+        return
 
-    try:
-        await auto_awoo(update, context)
-        add_current_members(username, user_id, fname, lname)
-    except Exception as e:
-        logging.error(e)
+    # XXX(mwp): bookkeep new users joining or sending messages in chat
+    users: list[User | None] = [message.from_user]
+    if message.new_chat_members is not None:
+        users.extend(message.new_chat_members)
+
+    for user in users:
+        if user is not None:
+            add_update_tg_user(user)
+
+    at_admined = await search_handle_at_admin(update, context)
+    if (
+        message is not None
+        and message.text is not None
+        and message.text.startswith("/")
+    ):
+        return
+
+    # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
+    # is triggered; 'fun' stuff shouldn't trigger during admin summons
+    if not at_admined:
+        await search_handle_awoo(update, context)
+        await search_handle_vore(update, context)
 
 
-async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+PAN_STICKER_PACK_NAME = "FURRIT_PAN"
+
+
+async def cmd_pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Pan awaits a trigger for its command.  It checks the replied message.
     If a user replies to themself, they are not allowed to pan themself.
@@ -78,136 +263,141 @@ async def pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message
+    message = update.message
+    assert message is not None
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan yourself."
-            )
-            return
-        if replied_message.from_user.id == context.bot.id:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't pan the bot."
-            )
-            return
-        else:
-            original_message_id = replied_message.message_id
-            sticker_pack_name = "FURRIT_PAN"
-            sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-            stickers_in_set = sticker_set.stickers
-            sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-            random_sticker_id = random.choice(sticker_ids)
-            add_pan_count(replied_message.from_user.id)
-            await update.message.reply_sticker(
-                sticker=random_sticker_id, reply_to_message_id=original_message_id
-            )
-    else:
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=effective_chat.id,
             text="You need to reply to a message to pan.",
         )
+        return
 
+    if message.from_user == reply_to_message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't pan yourself."
+        )
+        return
 
-async def print_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding to this list:
-    # Make a new line and type: links += "\n the links + any other info abt it"
-    links = "**Links:**"
-    links += """Greater Rochester Area Resources
- • Rochester Furs (https://t.me/RochesterFurs) — Group for all local area furries
- • Rochester Furs Events Channel (https://t.me/RochesterFurryEvents)"""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=links)
+    user_to_pan = reply_to_message.from_user
+    assert user_to_pan is not None
 
+    if user_to_pan.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't pan the bot."
+        )
+        return
 
-async def print_c(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding to this list:
-    # Make a new line and type: chan += "\n the channel + any other info abt it"
-    chan = "**Furrit Channels:**"
-    chan += """FurRIT-Exclusive Resources
- • FurRIT Telegram Folder (https://t.me/addlist/gy2K43K2_tBjOWFh) — All FurRIT Chats and Channels
- • ROOVille (https://t.me/+5-hPmg8gUd40MWNh) — NSFW art-sharing chat (admin approval required)
- • FurRIT After Dark (https://t.me/+u5NuEZcx3npmZDI5) — NSFW adult chat (admin approval required)
- • FurRIT Discord (https://discord.gg/kS4rryY)
- 
- 
- __Use /channels_sfw and /channels_nsfw to get a list of outside channels and chats run by FurRIT members.__"""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=chan)
+    sticker = await _random_sticker_pack_sticker(PAN_STICKER_PACK_NAME, context)
+    add_pan_count(user_to_pan.id)
 
-
-async def print_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding to this list:
-    # Make a new line and type: rule += "\n the rule + any other info abt it"
-    rules = " **Furrit Rules:** "
-    rules += """
-• FurRIT is for people who identify as members of the Furry Fandom
-• Group Chat is 18+
-• This community is a safe place for everyone of all genders, sexualities, races, etc.
-• Messaging that solicits or elicits sexual arousal should not be shared (keep that in NSFW chats)
-  > Forbidden content includes: moderate-heavy flirting, irl NSFW stories/content, porn, and kinks
-  > Permitted content includes: suggestive furry memes (no genitals), jokes, and non-sexual adult topics (e.g. swearing, alcohol, violence)
-Don't be horny in Main
-Reply to any message with @admin {optional note} to flag it for attention.
-
-
- **Membership Policy** (must satisfy at least one of the following):
-• Current RIT Students
-• Alumni
-• Staff
-• Faculty
-• Accepted to RIT
-• Significant Other/Spouse of Member"""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=rules)
-
-
-async def sfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding a chat to this list:
-    # Make a new line and type: chat += "\n the chat + any other info abt it"
-    chat = """SFW Affiliated Chats and Channels
-Run by FurRIT members rather than the Admin Team. Subject to their own rules.
-
-Azu (http://t.me/azu_shorttail)
- • Infurmation Technology — Get help with code and complain about technology
-Vanawolf (http://t.me/vanawolf)
- • I Vana See Cuteness (https://t.me/VanaCute) — Only the cutest, most adorable SFW content
- • I Vana Appreciate (https://t.me/VanaAppreciate) — Creative, skillfull, thought provoking, mind expanding, calming, good
-Xoren (http://t.me/MrHyperCube)
- • Xoren's Stream Studio (https://t.me/XorenMoonbeam) — Announcements from your local streaming Physics Folf!"""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
-
-
-async def nsfw_print_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding a chat to this list:
-    # Make a new line and type: chat += "\n the chat + any other info abt it"
-    chat = """"""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=chat)
-
-
-async def print_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Formating of manually adding a command to this list:
-    # Make a new line and type: command += "\n the command + any other info abt it"
-    commands = "The list of user commands for the Bot:"
-    commands += "\n /chats : lists all Furrit chats\n/commands : lists the commands for this bot"
-    commands += "\n /rules : Lists all the current rules of furrit\n/channels : lists furrit channels"
-    commands += "\n /links : Lists links to furrit channels, chats, sites, etc"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=commands)
-
-
-async def autoAwoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # count = telegram.Bot.get_chat_member_count(update.effective_chat.id)
-    # count = telegram.Bot.getChatMemberCount(context.bot,update.effective_chat.id)
-    count = await context.bot.get_chat_member_count(update.effective_chat.id)
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
-    text = "There are {} members in this chat.\n The admins of this chat are \n{}\n{}".format(
-        count, admins[0].user.username, admins[1].user.username
+    await message.reply_sticker(
+        sticker=sticker, reply_to_message_id=reply_to_message.id
     )
-    text1 = admins[0].user.username + admins[1].user.username
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
 
-#     print(admins) #remove /TODO
+BARN_STICKER_PACK_NAME = "furrit_barn"
 
 
-async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """\\barn command"""
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You need to reply to a message to barn.",
+        )
+        return
+
+    if message.from_user == reply_to_message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't barn yourself."
+        )
+        return
+
+    user_to_pan = reply_to_message.from_user
+    assert user_to_pan is not None
+
+    if user_to_pan.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't barn the bot."
+        )
+        return
+
+    sticker = await _random_sticker_pack_sticker(BARN_STICKER_PACK_NAME, context)
+    await message.reply_sticker(
+        sticker=sticker, reply_to_message_id=reply_to_message.id
+    )
+
+
+async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
+    )
+
+
+async def cmd_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHATS_MESSAGE
+    )
+
+
+async def cmd_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=RULES_MESSAGE
+    )
+
+
+async def cmd_channels_sfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHANNELS_SFW_MESSAGE
+    )
+
+
+async def cmd_channels_nsfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHANNELS_NSFW_MESSAGE
+    )
+
+
+async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=COMMANDS_MESSAGE
+    )
+
+
+BAN_COMMAND_LENGTH = timedelta(minutes=5)
+
+
+async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Ban is currently unfinished, as far as I'm aware.
     Times out a user for 5 minutes.
@@ -216,205 +406,84 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
+    message = update.message
+    assert message is not None
 
-    if replied_message:
-        if replied_message.from_user == update.message.from_user:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="You can't ban yourself."
-            )
-            return
-            # TODO: or if replying user is not an admin then message : "not allowed to ban"
-            # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="Unauthorized to ban."
-            )
-            return
-        else:
-            # actual banning of the user
-            await context.bot.ban_chat_member(
-                chat_id=update.effective_chat.id,  # chat
-                user_id=replied_message.from_user.id,  # origional message
-                until_date=(
-                    datetime.now() + timedelta(minutes=5)
-                ),  # need to decide how long to ban for
-                revoke_messages=False,
-            )  # need to decide if messages they send will be visible
-            return
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        return
 
-# reads through all messages sent and looks for awoo to fine the person
-# also currently houses the @admin function
-async def auto_awoo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A service that goes through a message sent and looks for 'awoo'.
-    Also apparently houses the @admin function (needs to be taken out and made into its own service)
-    Also houses the vore function
-    author: Torin
-    :param update:
-    :param context:
-    :return:
-    """
-
-    text0 = update.message.text
-    logging.info(text0)
-    t = re.findall(r"[@+A+a]+[w+W]+[o+0+O]+[o+0+O]+", text0)
-    call = re.findall("@admin", text0)
-    vore = re.findall(r"[V+v]+[O+o+0]+[R+r]+[E+e+3]+[S+s+z+Z]*", text0)
-    logging.info(t)  # idk wtf this does but it doesnt work without it
-    members = get_members()
-    if t:
-        for x in members:
-            if int(update.message.from_user.id) == int(x[0]):
-                add_fine(x[0])
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"Don't Awoo! - $350 fine!\n\n{update.message.from_user.first_name}'s current fines ${x[4] + 350}",
-                    #                         update.message.from_user.first_name, x[4] + 350)
-                    # text="This is a test function, change it back later\n x[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2])
-                )
-    if call:  # if @admin was called
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Contacting the admin team")
-
-        # forwad message to admin chat
-        # forward the message that had @admin
-        # send a message saying the user that requested the @admin
-
-        replied_message = update.message.reply_to_message
-        # chat IDs
-        # -1002082274403  second test server
-
-        CID = (
-            -1001168121589
-        )  # the current chat id in use by the bot for a destination, change as needed
-        if replied_message:
-            await context.bot.forward_message(
-                chat_id=CID,
-                from_chat_id=replied_message.chat_id,
-                message_id=replied_message.message_id,
-            )
-            await context.bot.send_message(
-                chat_id=CID,
-                text="Attention requested in '{}' by {}".format(
-                    update.message.chat.title, update.message.from_user.first_name
-                ),
-            )
-            await context.bot.forward_message(
-                chat_id=CID,
-                from_chat_id=replied_message.chat_id,
-                message_id=update.message.message_id,
-            )
-    if vore: #if someone says vore
-
-
-        original_message_id = update.message.message_id
-        sticker_pack_name = "FJZGIF"
-        # sticker_pack_name = "FURRIT_PAN"
-        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-        stickers_in_set = sticker_set.stickers
-        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-        random_sticker_id = random.choice(sticker_ids)
-        await update.message.reply_sticker(
-            sticker=random_sticker_id, reply_to_message_id=original_message_id
-        )
-
-
-
-#         context.bot.forward_message(
-#             chat_id=update.effective_message.chat_id,
-#             from_chat_id=update.effective_message.chat_id,
-#             message_id=replied_message.message_id, )
-
-
-async def Rfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Removes a single fine from a user.  Can specify amount removed.
-    author: Torin
-    :param update:
-    :param context:
-    :return:
-    """
-    # if a message was replied to
-    replied_message = update.message.reply_to_message
-    if replied_message:
-        id = replied_message.from_user.id
-        remove_fine(350, id)
-        await update.message.reply_text(
-            text="forgiving a $350 fine from " + replied_message.from_user.username,
-            reply_to_message_id=replied_message.message_id,
+    if reply_to_message.from_user == message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't ban yourself."
         )
         return
 
-    # idk if this actually works yet, so imma just skip it with a return
-    return
-    # if no message was replied to
-    message = update.message.text
-    user = ""
-    index = 8
-    go = 0
-    print(message[8])
-    while index < len(message):
-        if message[index] == "@":
-            go = 1
-        elif go == 1:
-            if message[index] != " ":
-                user += message[index]
-            else:
-                break
-        index += 1
-    members = get_members()
-    for x in members:
-        if str(user) == str(x[1]):  # if the user is in the chat
-            remove_fine(350, x[0])
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="forgiving a $350 fine from {}\n\n{}'s current fines ${}".format(
-                    user, user, x[4] - 350
-                ),
-            )
+    # TODO: or if replying user is not an admin then message : "not allowed to ban"
+    # elif Telegram.ChatMember.status(bot.get_chat_member(chat_id, user_id)) != 'Administrator':
+    # await context.bot.send_message(
+    #     chat_id=update.effective_chat.id, text="Unauthorized to ban."
+    # )
+    # return
+
+    user_to_ban = reply_to_message.from_user
+    assert user_to_ban is not None
+
+    await context.bot.ban_chat_member(
+        chat_id=effective_chat.id,
+        user_id=user_to_ban.id,
+        until_date=(datetime.now() + BAN_COMMAND_LENGTH),
+        revoke_messages=False,
+    )
 
 
-async def add_users_fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+MANUAL_UNFINE_COST = 350
+
+
+async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    The code to manually add fines to a User
-    Author: Torin
+    Removes a single fine from a user. Can specify amount removed.
+    author: Torin
     """
-    count = 0
-    uid = ""
-    fine = ""
+    message = update.message
+    assert message is not None
 
-    message = update.message.text
-    message = message.split("\n")
-    f = 0
-    for command in message:
-        if f == 0:
-            f = 1
-            continue
-        input = command.split(" ")
-        first = 1
-        for num in input:
-            if first == 1:
-                uid = num
-                first = 2
-                continue
-            if first == 2:
-                fine = num
-                first = 1
-                add_fines(uid, fine)
-                continue
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        to_reply_to = message.message_id
+        user_to_unfine = message.from_user
+    else:
+        to_reply_to = reply_to_message.message_id
+        user_to_unfine = reply_to_message.from_user
 
-    # if uid != '' and uid and fine != '' and fine:
-    #     # add_fines(uid, fine)
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text=f"attempted to add fines to user {uid} with amount {fine}")
-    # else:
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text="inadequate parameters to fine a custom amount")
+    assert user_to_unfine is not None
+
+    # XXX(mwp): make sure the user we're about to unfine is registered
+    add_update_tg_user(user_to_unfine)
+
+    ok, cfines_or_msg = do_forgive_fine(user_to_unfine.id, MANUAL_UNFINE_COST)
+    if not ok:
+        await message.reply_text(
+            text=f"Cannot forgive ${MANUAL_UNFINE_COST} without becoming negative!"
+        )
+        return
+
+    assert isinstance(cfines_or_msg, int)
+    await message.reply_text(
+        text=f"""Forgiving ${MANUAL_UNFINE_COST} from {user_to_unfine.first_name}.
+
+{user_to_unfine.first_name}'s current fines ${cfines_or_msg}""",
+        reply_to_message_id=to_reply_to,
+    )
 
 
-async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
+MANUAL_FINE_COST = 350
+
+
+async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Command to fine a user by replying to their message.
     author: Torin
@@ -422,64 +491,37 @@ async def fines(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
-    if replied_message:
-        original_message_id = replied_message.message_id
-        user = replied_message.from_user.username
+    message = update.message
+    assert message is not None
 
-        members = get_members()
-        for x in members:
-            if int(replied_message.from_user.id) == int(x[0]):
-                add_fine(x[0])
-                # await context.bot.send_message(chat_id=update.effective_chat.id,text="TEST\nx[0] = {}\nx[1]={}\nx[2] = {} (fine value)".format(x[0],x[1],x[2]))
-                await update.message.reply_text(
-                    text="Fining "
-                    + user
-                    + " $350\n\n{}'s current fines ${}".format(
-                        replied_message.from_user.first_name, x[4] + 350
-                    ),
-                    reply_to_message_id=original_message_id,
-                )
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
-    #         await update.message.reply_text(
-    #             text="Fining " + user + " $350\n\n{}'s current fines ${}".format(update.message.from_user.first_name,
-    #                                                                              x[2] + 350),
-    #             reply_to_message_id=original_message_id)
-
-    else:
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="No user selected to fine"
+            chat_id=effective_chat.id, text="No user selected to fine"
         )
+        return
 
+    user_to_fine = reply_to_message.from_user
+    assert user_to_fine is not None
 
-# used to grab a list of all members
-# CADEN DO NOT DELETE
-# IT IS USED BY MOST OF THE FUNCTIONS
-async def get_all_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A test command (will not be deployed) that gets the list of the members in the database.
-    author: Caden
-    :param update:
-    :param context:
-    :return:
-    """
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=get_members()[1][2]
+    # XXX(mwp): make sure the user we're about to fine is registered
+    add_update_tg_user(user_to_fine)
+
+    c_fines = do_fine_user(user_to_fine.id, MANUAL_FINE_COST)
+    assert c_fines is not None
+
+    await message.reply_text(
+        text=f"""Fining {user_to_fine.full_name} ${MANUAL_FINE_COST}!
+
+{user_to_fine.full_name}'s current fines ${c_fines}""",
+        reply_to_message_id=reply_to_message.message_id,
     )
 
 
-async def get_all_quotes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    A test command (will not be deployed) that gets the list of all the quotes in the database.
-    author: Caden
-    :param update:
-    :param context:
-    :return:
-    """
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=get_quotes())
-
-
-async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Add a message to the quotes database.
     Cannot quote yourself or the bot.
@@ -489,80 +531,258 @@ async def add_quote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     :param context:
     :return:
     """
-    replied_message = update.message.reply_to_message
-    # TODO: Need to create a base case for quotes that are too long
-    try:
-        if replied_message:
-            if replied_message.from_user == update.message.from_user:
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text="You can't quote yourself."
-                )
-                return
+    message = update.message
+    assert message is not None
 
-            if replied_message.from_user.id == context.bot.id:
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text="You can't quote the bot."
-                )
-                return
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
 
-            else:
-                quote_user_id = replied_message.from_user.id
-                quote_contents = replied_message.text
-                sender_user_id = update.message.from_user.id
-                value = add_quote_db(sender_user_id, quote_user_id, quote_contents)
-                if value == 1:
-                    await context.bot.send_message(
-                        chat_id=update.effective_chat.id, text="Quote added."
-                    )
-                if value == 0:
-                    await context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text="You can't quote this twice!",
-                    )
-    except Exception as e:
-        logging.info(e)
+    reply_to_message = message.reply_to_message
+    assert reply_to_message is not None
+
+    if reply_to_message is None:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Failed. {e}"
+            chat_id=effective_chat.id, text="You must reply to a message to quote."
         )
+        return
+
+    if reply_to_message.text is None:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="Quoted message must have text."
+        )
+        return
+
+    assert message.from_user is not None
+    assert reply_to_message.from_user is not None
+
+    if reply_to_message.from_user == message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't quote yourself."
+        )
+        return
+
+    if reply_to_message.from_user.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't quote the bot."
+        )
+        return
+
+    # XXX(mwp): make sure both users are present in the database
+    add_update_tg_user(message.from_user)
+    add_update_tg_user(reply_to_message.from_user)
+
+    # XXX(mwp): try to add a quote, handling when it isn't possible
+    res = try_do_add_quote(reply_to_message, message)
+
+    ok, err_msg = res
+    if not ok:
+        assert err_msg is not None
+        await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
 
 
-CID = -1001037004907
+async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Get quote command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, remaining = _parse_optional_username(text)
+
+    if m_username is None:
+        user_quote = random_quote(effective_chat.id)
+        if user_quote is None:
+            await message.reply_text(text="Could not find a random Quote!")
+            return
+    else:
+        stripped = remaining.strip()
+        user_quote = search_quotes(stripped, effective_chat.id, username=m_username)
+        if user_quote is None:
+            await message.reply_text(
+                text="Could not find a Quote that matched that criteria!"
+            )
+            return
+
+    user, quote = user_quote
+
+    date = datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date_fmted = date.strftime("%b %d %Y")
+
+    response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'
+    response_esc = telegram.helpers.escape_markdown(response, version=2)
+    response_esc += f"_{date_fmted}_"
+
+    await effective_chat.send_message(response_esc, parse_mode="MarkdownV2")
+
+
+async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Quote statistics command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, _ = _parse_optional_username(text)
+
+    if m_username is None:
+        qs = derive_quote_stats()
+
+        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
+
+        total_times = ""
+        for user, count in qs.top_adders:
+            total_times += f"• {count}: {user.tg_first_name}\n"
+
+        total_quotes = ""
+        for user, count in qs.top_adders:
+            total_quotes += f"• {count}: {user.tg_first_name}\n"
+
+        total_times_esc = telegram.helpers.escape_markdown(total_times, version=2)
+        total_quotes_esc = telegram.helpers.escape_markdown(total_quotes, version=2)
+
+        reply = f"{prelude}{total_times_esc}\n*Total Quotes Added*\n{total_quotes_esc}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+    else:
+        m_triple = derive_user_quote_stats(m_username)
+
+        if m_triple is None:
+            await effective_chat.send_message(
+                "Could not find Quotes that involve that user."
+            )
+            return
+        user, times_quoted, times_added = m_triple
+
+        reply = f"*Overall for {user.tg_first_name}*\n\n*Total Times Quoted*\n{times_quoted}\n*Total Quotes Added*\n{times_added}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+
+
+async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
+    """
+    Awoo Fines Command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, _ = _parse_optional_username(text)
+
+    # XXX(mwp): ensure that the Telegram User is in the database
+    add_update_tg_user(from_user)
+
+    if m_username is None:
+        user = try_get_user_by_tg_id(from_user.id)
+        assert user is not None
+    else:
+        user = try_get_user_by_tg_username(m_username)
+        if user is None:
+            await effective_chat.send_message(
+                "Could not find a user with that username."
+            )
+            return
+
+    fines = get_user_fines(user.id)
+    if fines == 0:
+        reply = f"{user.tg_first_name} doesn't have any fines!"
+    else:
+        reply = f"{user.tg_first_name}'s current fines total ${fines}."
+
+    reply_esc = telegram.helpers.escape_markdown(reply, version=2)
+    await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
 
 
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
 
-async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    await update.message.reply_text(f"Chat ID: `{chat_id}`", parse_mode="Markdown")
+COMMAND_HANDLERS = [
+    ("commands", cmd_commands, "Get the list of commands."),
+    ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
+    ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
+    (
+        "channels_sfw",
+        cmd_channels_sfw,
+        "Get a list of SFW FurRIT-affiliated channels and chats.",
+    ),
+    (
+        "channels_nsfw",
+        cmd_channels_nsfw,
+        "Get a list of NSFW FurRIT-affiliated channels and chats.",
+    ),
+    ("rules", cmd_rules, "Get a list of chat rules and membership policies."),
+    (
+        "addquote",
+        cmd_addquote,
+        "Use as a reply to a text message to add it to the database of FurRIT quotes.",
+    ),
+    (
+        "getquote",
+        cmd_getquote,
+        "[@USER] [SEARCH QUERY] to get a random quote; includes options to search by user and/or text content.",
+    ),
+    (
+        "quotestats",
+        cmd_quotestats,
+        "[@USER] to get the total number of quotes added and authored; if a user is specified, stats are only shown for that user.",
+    ),
+    (
+        "awoofines",
+        cmd_awoofines,
+        "[@USER] for your current total awoo fines owed; if a username is specified, fines for that user are shown instead.",
+    ),
+    ("pan", cmd_pan, "Use as a reply to pan a User."),
+    ("barn", cmd_barn, "Use as a reply to barn a User."),
+    ("fine", cmd_fine, "Use as a reply to manually fine a User."),
+    ("unfine", cmd_unfine, "User as a reply to remove a fine from a User."),
+]
 
-async def barn_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    replied_message = update.message.reply_to_message
 
-    if replied_message:
-        original_message_id = replied_message.message_id
-        sticker_pack_name = "furrit_barn"
-        sticker_set = await context.bot.get_sticker_set(name=sticker_pack_name)
-        stickers_in_set = sticker_set.stickers
-        sticker_ids = [sticker.file_id for sticker in stickers_in_set]
-        random_sticker_id = random.choice(sticker_ids)
-        await update.message.reply_sticker(
-            sticker=random_sticker_id, reply_to_message_id=original_message_id
-        )
-    else:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="You need to reply to a message to pan.",
-        )
+def main() -> None:
+    """
+    Load configurations & start listening.
+    """
+    dotenv.load_dotenv()
 
+    raw_cid = os.environ["CID"]
+    cid = int(raw_cid)
 
-if __name__ == "__main__":
-    # rebuild_tables()
+    raw_admin_cid = os.environ["ADMIN_CID"]
+    admin_cid = int(raw_admin_cid)
 
-    # Ask Torin/sol for the token
-    BOT_TOKEN = "token"
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_token = os.environ["BOT_TOKEN"]
+
+    descriptors: list[tuple[str, str]] = []
+    for command, _, description in COMMAND_HANDLERS:
+        descriptor = (command, description)
+        descriptors.append(descriptor)
+
+    builder = ApplicationBuilder().token(bot_token)
+
+    async def post_init(application: Application) -> None:
+        application.bot_data["ADMIN_CID"] = admin_cid
+        await application.bot.set_my_commands(descriptors)
+
+    builder.post_init(post_init)
+    application = builder.build()
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
@@ -586,38 +806,16 @@ if __name__ == "__main__":
         args=[application.bot],  # Pass bot context
     )
 
-    # application.add_handler(ChatMemberHandler(track_chats, ChatMemberHandler.MY_CHAT_MEMBER))
+    for command, callback, _ in COMMAND_HANDLERS:
+        handler = CommandHandler(command, callback)
+        application.add_handler(handler)
 
-    pan_handler = CommandHandler("pan", pan)
-    fine_handler = CommandHandler("fine", fines)
-    remove_fine_handler = CommandHandler("unfine", Rfine)
-    barn_handler = CommandHandler("barn", barn_command)
-    get_handler = CommandHandler("get", get_all_members)
-    add_users = CommandHandler("add", add_users_fines)
-    get_quote_handler = CommandHandler("get_quotes", get_all_quotes)
-    add_quote_handler = CommandHandler("quote", add_quote)
-    members_handler = MessageHandler(filters.CHAT, handle_messages)
-
-    application.add_handler(pan_handler)
-    application.add_handler(fine_handler)
-    application.add_handler(remove_fine_handler)
-    application.add_handler(barn_handler)
-
-    application.add_handler(CommandHandler("awoo", autoAwoo))
-
-    application.add_handler(CommandHandler("commands", print_commands))
-    application.add_handler(CommandHandler("channels_sfw", sfw_print_chats))
-    application.add_handler(CommandHandler("channels_nsfw", nsfw_print_chats))
-    application.add_handler(CommandHandler("rules", print_rules))
-    application.add_handler(CommandHandler("chats", print_c))
-    application.add_handler(CommandHandler("links", print_links))
-    application.add_handler(CommandHandler("getc", get_chat_id))
-
-    application.add_handler(get_handler)
-    application.add_handler(add_users)
-    application.add_handler(get_quote_handler)
-    application.add_handler(add_quote_handler)
+    members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
 
     application.run_polling()
     scheduler.start()
+
+
+if __name__ == "__main__":
+    main()

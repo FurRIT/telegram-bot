@@ -8,6 +8,7 @@ import os.path
 import sqlite3
 import argparse
 import datetime
+import urllib.parse
 
 BIN_DIR = os.path.dirname(__file__)
 SCHEMA_PATH = os.path.join(BIN_DIR, "..", "db", "schema.sql")
@@ -52,6 +53,16 @@ class LegacyQuote(NamedTuple):
     NSFW: int | None
 
 
+def _sanitize(string: str | None) -> str | None:
+    if string is None:
+        return None
+
+    if string == "None":
+        return None
+
+    return urllib.parse.unquote(string)
+
+
 def _raw_user_to_legacy_user(raw: Any) -> LegacyUser:
     assert isinstance(raw, tuple)
     assert len(raw) == 6
@@ -66,14 +77,10 @@ def _raw_user_to_legacy_user(raw: Any) -> LegacyUser:
     assert awoo_fine is None or isinstance(awoo_fine, int)
     assert pan_count is None or isinstance(pan_count, int)
 
-    if telegram_id is not None and telegram_id == "None":
-        telegram_id = None
-    if firstName is not None and firstName == "None":
-        firstName = None
-    if lastName is not None and lastName == "None":
-        lastName = None
-    if username is not None and username == "None":
-        username = None
+    telegram_id = _sanitize(telegram_id)
+    firstName = _sanitize(firstName)
+    lastName = _sanitize(lastName)
+    username = _sanitize(username)
 
     return LegacyUser(telegram_id, firstName, lastName, username, awoo_fine, pan_count)
 
@@ -116,16 +123,11 @@ def _raw_quote_to_legacy_quote(raw: Any) -> LegacyQuote:
     assert Chat_ID is None or isinstance(Chat_ID, str)
     assert NSFW is None or isinstance(NSFW, int)
 
-    if Quote_Author is not None and Quote_Author == "None":
-        Quote_Author = None
-    if quote is not None and quote == "None":
-        quote = None
-    if date_issued is not None and date_issued == "None":
-        date_issued = None
-    if issued_by_id is not None and issued_by_id == "None":
-        issued_by_id = None
-    if Chat_ID is not None and Chat_ID == "None":
-        Chat_ID = None
+    Quote_Author = _sanitize(Quote_Author)
+    quote = _sanitize(quote)
+    date_issued = _sanitize(date_issued)
+    issued_by_id = _sanitize(issued_by_id)
+    Chat_ID = _sanitize(Chat_ID)
 
     return LegacyQuote(Quote_Author, quote, date_issued, issued_by_id, Chat_ID, NSFW)
 

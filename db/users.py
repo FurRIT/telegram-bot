@@ -2,7 +2,7 @@
 User handling utilities.
 """
 
-from typing import Literal
+from typing import NamedTuple, Literal
 import os
 
 import telegram
@@ -17,6 +17,17 @@ SCHEMA_PATH = os.path.join(DB_MODULE_ROOT, "schema.sql")
 AWOO_FINE_COST = 350
 
 
+class UserRow(NamedTuple):
+    id: int
+    tg_id: int
+    tg_first_name: str
+    tg_last_name: str | None
+    tg_username: str | None
+    fines: int
+    n_awoo: int
+    n_pan: int
+
+
 def rebuild_tables() -> None:
     """
     Rebuild all Datbase Tables.
@@ -24,6 +35,55 @@ def rebuild_tables() -> None:
     WARNING: Destructive.
     """
     exec_sql_file(SCHEMA_PATH)
+
+
+def try_get_user_by_tg_username(tg_username: str) -> UserRow | None:
+    """
+    Try to get a UserRow by the Telegram Username.
+    """
+
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT id, tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan FROM USERS WHERE tg_username = ? LIMIT 1",
+        (tg_username,),
+    )
+    row: tuple[int, int, str, str | None, str | None, int, int, int] | None = (
+        cur.fetchone()
+    )
+
+    if row is None:
+        return None
+
+    cur.close()
+    con.close()
+
+    return UserRow(*row)
+
+
+def try_get_user_by_tg_id(tg_id: int) -> UserRow | None:
+    """
+    Try to get a UserRow by their Telegram Identifier.
+    """
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT id, tg_id, tg_first_name, tg_last_name, tg_username, fines, n_awoo, n_pan FROM USERS WHERE tg_id = ? LIMIT 1",
+        (tg_id,),
+    )
+    row: tuple[int, int, str, str | None, str | None, int, int, int] | None = (
+        cur.fetchone()
+    )
+
+    if row is None:
+        return None
+
+    cur.close()
+    con.close()
+
+    return UserRow(*row)
 
 
 def add_update_tg_user(user: telegram.User) -> None:
@@ -250,3 +310,22 @@ def do_forgive_fine(
     con.close()
 
     return (True, next_fines)
+
+
+def get_user_fines(uid: int) -> int:
+    """
+    Fetch a User's Fines.
+    """
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute("SELECT fines FROM USERS WHERE id = ?", (uid,))
+
+    res: tuple[int] | None = cur.fetchone()
+    cur.close()
+    con.close()
+
+    assert res is not None
+    fines = res[0]
+
+    return fines

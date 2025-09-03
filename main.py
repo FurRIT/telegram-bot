@@ -20,14 +20,25 @@ from telegram.ext import (
     Application,
     filters,
 )
+import telegram.helpers
+
 from db.users import (
+    get_user_fines,
     add_update_tg_user,
     add_pan_count,
     incr_fine_awoo,
     do_forgive_fine,
     do_fine_user,
     try_do_add_quote,
+    try_get_user_by_tg_id,
+    try_get_user_by_tg_username,
     AWOO_FINE_COST,
+)
+from db.quotes import (
+    search_quotes,
+    random_quote,
+    derive_quote_stats,
+    derive_user_quote_stats,
 )
 from messages import (
     LINKS_MESSAGE,
@@ -51,6 +62,33 @@ async def _random_sticker_pack_sticker(
     file_ids = [sticker.file_id for sticker in stickers.stickers]
 
     return random.choice(file_ids)
+
+
+PARSE_OPTIONAL_USERNAME_RE = re.compile(r"^@([_\-a-zA-Z0-9]*)(.*)")
+
+
+def _parse_optional_username(text: str) -> tuple[str | None, str]:
+    """
+    Parse the text of a Telegram Message, assuming that if the first word is
+    prefixed with @[a-zA-Z0-9] it is username argument.
+
+    Returns (username, extra_text)
+    """
+
+    space_after_cmd_idx = text.find(" ")
+    if space_after_cmd_idx == -1:
+        return (None, "")
+
+    txt_after_cmd = text[(space_after_cmd_idx + 1) :]
+
+    username_match = PARSE_OPTIONAL_USERNAME_RE.match(txt_after_cmd)
+    if username_match is None:
+        return (None, txt_after_cmd)
+
+    username = username_match[1]
+    query = username_match[2]
+
+    return (username, query)
 
 
 AT_ADMIN_RE = re.compile(r"@admin")
@@ -79,32 +117,27 @@ async def search_handle_at_admin(
 
     admin_cid = context.bot_data["ADMIN_CID"]
 
-    # TODO: sent some sort of message indicating that @admin must be a reply; or
-    # handle the case where it is not a reply; still returns True to indicate an
-    # @admin match
-    if message.reply_to_message is None:
-        return True
-    reply_to = message.reply_to_message
-
-    assert message.from_user is not None
-
     await context.bot.send_message(
         chat_id=effective_chat.id, text="Contacting the admin team"
     )
+
+    if message.reply_to_message is None:
+        message_to_forward = message
+    else:
+        message_to_forward = message.reply_to_message
+
     await context.bot.forward_message(
         chat_id=admin_cid,
-        from_chat_id=reply_to.chat_id,
-        message_id=reply_to.message_id,
+        from_chat_id=message_to_forward.chat_id,
+        message_id=message_to_forward.message_id,
     )
+
+    assert message.from_user is not None
     await context.bot.send_message(
         chat_id=admin_cid,
-        text=f"Attention requested in '{reply_to.chat.title}' by {message.from_user.first_name}",
+        text=f"Attention requested in '{message_to_forward.chat.title}' by {message.from_user.first_name}",
     )
-    await context.bot.forward_message(
-        chat_id=admin_cid,
-        from_chat_id=reply_to.chat_id,
-        message_id=message.message_id,
-    )
+
     return True
 
 
@@ -547,6 +580,136 @@ async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
 
 
+async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Get quote command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, remaining = _parse_optional_username(text)
+
+    if m_username is None:
+        user_quote = random_quote(effective_chat.id)
+        if user_quote is None:
+            await message.reply_text(text="Could not find a random Quote!")
+            return
+    else:
+        stripped = remaining.strip()
+        user_quote = search_quotes(stripped, effective_chat.id, username=m_username)
+        if user_quote is None:
+            await message.reply_text(
+                text="Could not find a Quote that matched that criteria!"
+            )
+            return
+
+    user, quote = user_quote
+
+    date = datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date_fmted = date.strftime("%b %d %Y")
+
+    response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'
+    response_esc = telegram.helpers.escape_markdown(response, version=2)
+    response_esc += f"_{date_fmted}_"
+
+    await effective_chat.send_message(response_esc, parse_mode="MarkdownV2")
+
+
+async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Quote statistics command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, _ = _parse_optional_username(text)
+
+    if m_username is None:
+        qs = derive_quote_stats()
+
+        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
+
+        total_times = ""
+        for user, count in qs.top_adders:
+            total_times += f"• {count}: {user.tg_first_name}\n"
+
+        total_quotes = ""
+        for user, count in qs.top_adders:
+            total_quotes += f"• {count}: {user.tg_first_name}\n"
+
+        total_times_esc = telegram.helpers.escape_markdown(total_times, version=2)
+        total_quotes_esc = telegram.helpers.escape_markdown(total_quotes, version=2)
+
+        reply = f"{prelude}{total_times_esc}\n*Total Quotes Added*\n{total_quotes_esc}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+    else:
+        m_triple = derive_user_quote_stats(m_username)
+
+        if m_triple is None:
+            await effective_chat.send_message(
+                "Could not find Quotes that involve that user."
+            )
+            return
+        user, times_quoted, times_added = m_triple
+
+        reply = f"*Overall for {user.tg_first_name}*\n\n*Total Times Quoted*\n{times_quoted}\n*Total Quotes Added*\n{times_added}"
+        await effective_chat.send_message(text=reply, parse_mode="MarkdownV2")
+
+
+async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
+    """
+    Awoo Fines Command.
+    """
+    message = update.message
+    assert message is not None
+
+    text = message.text
+    assert text is not None
+
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    m_username, _ = _parse_optional_username(text)
+
+    # XXX(mwp): ensure that the Telegram User is in the database
+    add_update_tg_user(from_user)
+
+    if m_username is None:
+        user = try_get_user_by_tg_id(from_user.id)
+        assert user is not None
+    else:
+        user = try_get_user_by_tg_username(m_username)
+        if user is None:
+            await effective_chat.send_message(
+                "Could not find a user with that username."
+            )
+            return
+
+    fines = get_user_fines(user.id)
+    if fines == 0:
+        reply = f"{user.tg_first_name} doesn't have any fines!"
+    else:
+        reply = f"{user.tg_first_name}'s current fines total ${fines}."
+
+    reply_esc = telegram.helpers.escape_markdown(reply, version=2)
+    await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
+
+
 async def daily_e(bot: Bot):
     await bot.send_message(chat_id=CID, text="e")
 
@@ -570,6 +733,21 @@ COMMAND_HANDLERS = [
         "addquote",
         cmd_addquote,
         "Use as a reply to a text message to add it to the database of FurRIT quotes.",
+    ),
+    (
+        "getquote",
+        cmd_getquote,
+        "[@USER] [SEARCH QUERY] to get a random quote; includes options to search by user and/or text content.",
+    ),
+    (
+        "quotestats",
+        cmd_quotestats,
+        "[@USER] to get the total number of quotes added and authored; if a user is specified, stats are only shown for that user.",
+    ),
+    (
+        "awoofines",
+        cmd_awoofines,
+        "[@USER] for your current total awoo fines owed; if a username is specified, fines for that user are shown instead.",
     ),
     ("pan", cmd_pan, "Use as a reply to pan a User."),
     ("barn", cmd_barn, "Use as a reply to barn a User."),

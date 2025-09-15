@@ -352,11 +352,46 @@ implementation.
   to collect statistics, otherwise the command issuer is used.
 
   The database is queried to collect how many times the user being inspected,
-  - Was quoted by other people
-  - Authored quotes
+  - Has been quoted (#fileref("DB/models/User.js", 144))
+  - Has been quoted? (#fileref("DB/models/User.js", 114))
+  - Has quoted others (#fileref("DB/models/User.js", 129))
+
+  See #fileref("quotes_module/quotes.js", 10)
 ]
 
+#feature("Add Quote Command")[
+  The message source is checked. Then the messages is checked to make sure:
+  - It is a reply to the message being quoted
+  - It is a text or photo message
+  - It is not forwarded
+  - It is not from the bot
+  - It is not a reply to a message by the same user
 
+  Then, the message is added to the quote database.
+
+  See #fileref("quotes_module/quotes.js", 124)
+]
+
+#feature("Get Photo Command")[
+  A random photo message is retreived that matches the search criteria. Then, a
+  background process is spawned to remove the image after a period of time.
+
+  See #fileref("quotes_module/quotes.js", 206)
+]
+
+#feature("Get Quote Command")[
+  The message source is checked. Then a random quote is queried from the
+  database depending on the search parameters (see
+  #fileref("quotes_module/quotes.js", 289)).
+
+  See #fileref("quotes_module/quotes.js", 260)
+]
+
+#feature("Automatic Quote Of The Day")[
+  A random quote is chosen from the database and displayed @ 07:00 daily.
+
+  See #fileref("quotes_module/quotes.js", 397)
+]
 
 #pagebreak()
 = Appendix

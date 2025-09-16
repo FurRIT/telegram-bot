@@ -388,9 +388,30 @@ implementation.
 ]
 
 #feature("Automatic Quote Of The Day")[
-  A random quote is chosen from the database and displayed @ 07:00 daily.
+  A random quote is chosen from the database and displayed \@ 07:00 daily.
 
   See #fileref("quotes_module/quotes.js", 397)
+]
+
+#feature("Keyword Summons")[
+  Certain keywords may "summon" users. Summons logic is encapsulated in a
+  "Beetlejuice" object (see #fileref("summon_modules/Beetlejuice.js")).
+
+  The object is given a series of keywords, and a series of users that should
+  be summoned.
+
+  Whenever a message is sent, it is passed through instantiated Beetlejuice
+  objects for each keyword. There are three keywords (which may include
+  variants),
+
+  + paws (see #fileref("summon_modules/paws.js"))
+  + physics (see #fileref("summon_modules/physics.js"))
+  + vore (see #fileref("summon_modules/vore.js"))
+
+  When a message is checked for a keyword, other conditions are checked to
+  prevent duplicate triggers within a short timespan.
+
+  See #fileref("summon_modules/Beetlejuice.js", 54)
 ]
 
 #pagebreak()

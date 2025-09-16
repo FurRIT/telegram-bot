@@ -639,10 +639,10 @@ async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if m_username is None:
         qs = derive_quote_stats()
 
-        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
+        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*\n"
 
         total_times = ""
-        for user, count in qs.top_adders:
+        for user, count in qs.top_quoted:
             total_times += f"• {count}: {user.tg_first_name}\n"
 
         total_quotes = ""

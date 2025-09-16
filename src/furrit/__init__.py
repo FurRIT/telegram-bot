@@ -9,8 +9,8 @@ import logging
 from datetime import datetime, timedelta  # imported for /ban method
 
 import dotenv
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
+from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from telegram import Update, Bot, User
 from telegram.ext import (
     ApplicationBuilder,

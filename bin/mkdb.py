@@ -8,19 +8,15 @@ import pathlib
 import sqlite3
 import os.path
 import argparse
+import importlib.resources
+
+import furrit.db
 
 BIN_DIR_ROOT = os.path.dirname(__file__)
 REPO_ROOT = os.path.join(BIN_DIR_ROOT, "..")
 
 DEFAULT_DB_PATH = os.path.relpath(os.path.join(REPO_ROOT, "database.db"))
 SCHEMA_PATH = os.path.join(REPO_ROOT, "schema.sql")
-
-
-def _execute(conn: sqlite3.Connection, path: str) -> None:
-    with open(path, "r", encoding="utf-8") as file:
-        text = file.read()
-
-    conn.executescript(text)
 
 
 def main() -> None:
@@ -39,6 +35,9 @@ def main() -> None:
         default=DEFAULT_DB_PATH,
     )
     args = parser.parse_args()
+    schema_txt = importlib.resources.read_text(  # pylint: disable=deprecated-method
+        furrit.db, "schema.sql"
+    )
 
     if os.path.exists(args.output) and not args.force:
         print(
@@ -50,7 +49,7 @@ def main() -> None:
     pathlib.Path(args.output).touch(exist_ok=args.force)
     conn = sqlite3.connect(args.output)
 
-    _execute(conn, SCHEMA_PATH)
+    conn.executescript(schema_txt)
     conn.commit()
 
 

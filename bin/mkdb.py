@@ -10,10 +10,10 @@ import os.path
 import argparse
 
 BIN_DIR_ROOT = os.path.dirname(__file__)
-DEFAULT_DB_PATH = os.path.relpath(os.path.join(BIN_DIR_ROOT, "..", "database.db"))
+REPO_ROOT = os.path.join(BIN_DIR_ROOT, "..")
 
-DB_MOD_ROOT = os.path.join(BIN_DIR_ROOT, "..", "db")
-SCHEMA_PATH = os.path.join(DB_MOD_ROOT, "schema.sql")
+DEFAULT_DB_PATH = os.path.relpath(os.path.join(REPO_ROOT, "database.db"))
+SCHEMA_PATH = os.path.join(REPO_ROOT, "schema.sql")
 
 
 def _execute(conn: sqlite3.Connection, path: str) -> None:

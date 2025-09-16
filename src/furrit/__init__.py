@@ -22,7 +22,7 @@ from telegram.ext import (
 )
 import telegram.helpers
 
-from db.users import (
+from furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
     add_pan_count,
@@ -34,13 +34,13 @@ from db.users import (
     try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from db.quotes import (
+from furrit.db.quotes import (
     search_quotes,
     random_quote,
     derive_quote_stats,
     derive_user_quote_stats,
 )
-from messages import (
+from furrit.messages import (
     LINKS_MESSAGE,
     CHATS_MESSAGE,
     RULES_MESSAGE,

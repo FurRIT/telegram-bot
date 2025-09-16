@@ -164,13 +164,13 @@ implementation.
   See #fileref("art_chat_module/artChat.js", 5)
 ]
 
-#feature("Rules - Art Channel")[
+#feature("Rules Command - Art Channel")[
   When `/rules` is used the bot will repeat the `artChatRules` message.
 
   See #fileref("art_chat_module/artChat.js", 24)
 ]
 
-#feature("Rules - Art Channel")[
+#feature("Tags Command - Art Channel")[
   When `/tags` is used the bot will repeat the `artChatTags` message.
 
   See #fileref("art_chat_module/artChat.js", 36)

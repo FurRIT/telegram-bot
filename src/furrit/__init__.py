@@ -52,7 +52,7 @@ from furrit.messages import (
     COMMANDS_MESSAGE,
 )
 
-from admins import ADMINS_IDS
+from furrit.admins import ADMINS_IDS
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO

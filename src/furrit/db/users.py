@@ -7,7 +7,7 @@ import os
 
 import telegram
 
-from furrit.db.utils import connect, exec_sql_file
+from src.furrit.db.utils import connect, exec_sql_file
 
 DB_MODULE_ROOT = os.path.dirname(__file__)
 SCHEMA_PATH = os.path.join(DB_MODULE_ROOT, "schema.sql")

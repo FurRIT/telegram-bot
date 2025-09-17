@@ -10,10 +10,11 @@ import asyncio
 import logging
 import datetime
 
+from typing import Optional
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
-from telegram import Update, Bot, User
+from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
@@ -21,11 +22,11 @@ from telegram.ext import (
     MessageHandler,
     Application,
     Updater,
-    filters,
+    filters, ChatMemberHandler,
 )
 import telegram.helpers
 
-from furrit.db.users import (
+from src.furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
     add_pan_count,
@@ -37,22 +38,23 @@ from furrit.db.users import (
     try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from furrit.db.quotes import (
+from src.furrit.db.quotes import (
     search_quotes,
     random_quote,
     derive_quote_stats,
     derive_user_quote_stats,
 )
-from furrit.messages import (
+from src.furrit.messages import (
     LINKS_MESSAGE,
     CHATS_MESSAGE,
     RULES_MESSAGE,
     CHANNELS_SFW_MESSAGE,
     CHANNELS_NSFW_MESSAGE,
     COMMANDS_MESSAGE,
+    WELCOME_MESSAGE,
 )
 
-from furrit.admins import ADMINS_IDS
+from src.furrit.admins import ADMINS_IDS
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -224,6 +226,59 @@ async def search_handle_vore(
     return True
 
 
+async def welcome_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Sends the welcome message when someone joins the chat
+    """
+    if update.message is None or update.message.new_chat_members is None:
+        return
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
+    )
+
+def extract_status_change(chat_member_update: ChatMemberUpdated) -> Optional[tuple[bool, bool]]:
+    """Takes a ChatMemberUpdated instance and extracts whether the 'old_chat_member' was a member
+    of the chat and whether the 'new_chat_member' is a member of the chat. Returns None, if
+    the status didn't change.
+    """
+
+    status_change = chat_member_update.difference().get("status")
+    old_is_member, new_is_member = chat_member_update.difference().get("is_member", (None, None))
+
+    if status_change is None:
+        return None
+
+    old_status, new_status = status_change
+    was_member = old_status in [
+        ChatMember.MEMBER,
+        ChatMember.OWNER,
+        ChatMember.ADMINISTRATOR,
+    ] or (old_status == ChatMember.RESTRICTED and old_is_member is True)
+    is_member = new_status in [
+        ChatMember.MEMBER,
+        ChatMember.OWNER,
+        ChatMember.ADMINISTRATOR,
+    ] or (new_status == ChatMember.RESTRICTED and new_is_member is True)
+
+    return was_member, is_member
+
+
+async def greet_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Greets new users in chats and announces when someone leaves"""
+    result = extract_status_change(update.chat_member)
+    if result is None:
+        return
+
+    was_member, is_member = result
+
+    if not was_member and is_member:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=WELCOME_MESSAGE
+        )
+
+
+
 async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     If a new user speaks in chat, they are added to the database.
@@ -252,6 +307,17 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
         and message.text.startswith("/")
     ):
         return
+    #
+    # result = extract_status_change(update.chat_member)
+    # if result is None:
+    #     return
+    #
+    # was_member, is_member = result
+    #
+    # if not was_member and is_member:
+    #     await context.bot.send_message(
+    #         chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
+    #     )
 
     # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
     # is triggered; 'fun' stuff shouldn't trigger during admin summons
@@ -829,6 +895,11 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
 
+    # welcome_handler = MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_user)
+    # application.add_handler(welcome_handler)
+
+    application.add_handler(ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER))
+
     try:
         await application.initialize()
         await post_init(application)
@@ -836,7 +907,7 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
         await application.start()
 
         assert application.updater is not None
-        await application.updater.start_polling()
+        await application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
 
         scheduler.start()
 

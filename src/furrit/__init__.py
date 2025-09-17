@@ -2,6 +2,7 @@
 FurRIT Telegram Bot.
 """
 
+from typing import TypedDict, cast
 import re
 import os
 import random
@@ -54,6 +55,14 @@ from furrit.messages import (
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+
+
+class BotData(TypedDict):
+    """
+    Type description of custom bot data.
+    """
+
+    admin_cid: int
 
 
 async def _random_sticker_pack_sticker(
@@ -117,7 +126,8 @@ async def search_handle_at_admin(
     if at_admin_match is None:
         return False
 
-    admin_cid = context.bot_data["ADMIN_CID"]
+    bot_data = cast(BotData, context.bot_data)
+    admin_cid = bot_data["admin_cid"]
 
     await context.bot.send_message(
         chat_id=effective_chat.id, text="Contacting the admin team"
@@ -770,7 +780,7 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     builder = ApplicationBuilder().token(bot_token)
 
     async def post_init(application: Application) -> None:
-        application.bot_data["ADMIN_CID"] = admin_cid
+        application.bot_data["admin_cid"] = admin_cid
         await application.bot.set_my_commands(descriptors)
 
     builder.post_init(post_init)

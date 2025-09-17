@@ -52,7 +52,7 @@ from furrit.messages import (
     COMMANDS_MESSAGE,
 )
 
-from admins import (ADMINS_IDS)
+from admins import ADMINS_IDS
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -519,7 +519,6 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=effective_chat.id, text="Only admins can add fines"
         )
         return
-
 
     reply_to_message = message.reply_to_message
     if reply_to_message is None:

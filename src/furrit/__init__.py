@@ -62,6 +62,7 @@ class BotData(TypedDict):
     Type description of custom bot data.
     """
 
+    cid: int
     admin_cid: int
 
 
@@ -722,8 +723,9 @@ async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
 
 
-async def daily_e(bot: Bot):
-    await bot.send_message(chat_id=CID, text="e")
+async def daily_e(application: Application):
+    bot_data = cast(BotData, application.bot_data)
+    await application.bot.send_message(chat_id=bot_data["cid"], text="e")
 
 
 COMMAND_HANDLERS = [
@@ -780,7 +782,9 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     builder = ApplicationBuilder().token(bot_token)
 
     async def post_init(application: Application) -> None:
+        application.bot_data["cid"] = cid
         application.bot_data["admin_cid"] = admin_cid
+
         await application.bot.set_my_commands(descriptors)
 
     builder.post_init(post_init)
@@ -790,22 +794,22 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     scheduler.add_job(
         daily_e,
         CronTrigger(hour=6, minute=21),
-        args=[application.bot],
+        args=[application],
     )
     scheduler.add_job(
         daily_e,
         CronTrigger(hour=9, minute=26),
-        args=[application.bot],
+        args=[application],
     )
     scheduler.add_job(
         daily_e,
         CronTrigger(hour=18, minute=21),
-        args=[application.bot],
+        args=[application],
     )
     scheduler.add_job(
         daily_e,
         CronTrigger(hour=21, minute=26),
-        args=[application.bot],
+        args=[application],
     )
 
     for command, callback, _ in COMMAND_HANDLERS:

@@ -1,4 +1,4 @@
 format:
-	uv run black .
+	uv run black src/
 
 .PHONY: format

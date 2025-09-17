@@ -6,8 +6,8 @@ from typing import NamedTuple
 import re
 import dataclasses
 
-from db.utils import connect
-from db.users import UserRow, try_get_user_by_tg_id, try_get_user_by_tg_username
+from furrit.db.utils import connect
+from furrit.db.users import UserRow, try_get_user_by_tg_id, try_get_user_by_tg_username
 
 
 class QuoteRow(NamedTuple):

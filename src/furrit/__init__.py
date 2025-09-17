@@ -2,15 +2,17 @@
 FurRIT Telegram Bot.
 """
 
+from typing import TypedDict, cast
 import re
 import os
 import random
+import asyncio
 import logging
-from datetime import datetime, timedelta  # imported for /ban method
+import datetime
 
 import dotenv
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
+from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from telegram import Update, Bot, User
 from telegram.ext import (
     ApplicationBuilder,
@@ -18,11 +20,12 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     Application,
+    Updater,
     filters,
 )
 import telegram.helpers
 
-from db.users import (
+from furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
     add_pan_count,
@@ -34,13 +37,13 @@ from db.users import (
     try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from db.quotes import (
+from furrit.db.quotes import (
     search_quotes,
     random_quote,
     derive_quote_stats,
     derive_user_quote_stats,
 )
-from messages import (
+from furrit.messages import (
     LINKS_MESSAGE,
     CHATS_MESSAGE,
     RULES_MESSAGE,
@@ -49,11 +52,20 @@ from messages import (
     COMMANDS_MESSAGE,
 )
 
-from admins import (ADMINS_IDS)
+from furrit.admins import ADMINS_IDS
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+
+
+class BotData(TypedDict):
+    """
+    Type description of custom bot data.
+    """
+
+    cid: int
+    admin_cid: int
 
 
 async def _random_sticker_pack_sticker(
@@ -117,7 +129,8 @@ async def search_handle_at_admin(
     if at_admin_match is None:
         return False
 
-    admin_cid = context.bot_data["ADMIN_CID"]
+    bot_data = cast(BotData, context.bot_data)
+    admin_cid = bot_data["admin_cid"]
 
     await context.bot.send_message(
         chat_id=effective_chat.id, text="Contacting the admin team"
@@ -396,7 +409,7 @@ async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-BAN_COMMAND_LENGTH = timedelta(minutes=5)
+BAN_COMMAND_LENGTH = datetime.timedelta(minutes=5)
 
 
 async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -437,7 +450,7 @@ async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.ban_chat_member(
         chat_id=effective_chat.id,
         user_id=user_to_ban.id,
-        until_date=(datetime.now() + BAN_COMMAND_LENGTH),
+        until_date=(datetime.datetime.now() + BAN_COMMAND_LENGTH),
         revoke_messages=False,
     )
 
@@ -506,7 +519,6 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=effective_chat.id, text="Only admins can add fines"
         )
         return
-
 
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
@@ -622,7 +634,7 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user, quote = user_quote
 
-    date = datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date = datetime.datetime.fromisoformat(quote.quoter_msg_sent_at)
     date_fmted = date.strftime("%b %d %Y")
 
     response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'
@@ -650,10 +662,10 @@ async def cmd_quotestats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if m_username is None:
         qs = derive_quote_stats()
 
-        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*"
+        prelude = f"*Overall*\n{qs.quote_count} total quotes\n\n*Total Times Quoted*\n"
 
         total_times = ""
-        for user, count in qs.top_adders:
+        for user, count in qs.top_quoted:
             total_times += f"• {count}: {user.tg_first_name}\n"
 
         total_quotes = ""
@@ -721,8 +733,9 @@ async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
 
 
-async def daily_e(bot: Bot):
-    await bot.send_message(chat_id=CID, text="e")
+async def daily_e(application: Application):
+    bot_data = cast(BotData, application.bot_data)
+    await application.bot.send_message(chat_id=bot_data["cid"], text="e")
 
 
 COMMAND_HANDLERS = [
@@ -767,6 +780,75 @@ COMMAND_HANDLERS = [
 ]
 
 
+async def run(cid: int, admin_cid: int, bot_token: str) -> None:
+    """
+    Run the Application.
+    """
+    descriptors: list[tuple[str, str]] = []
+    for command, _, description in COMMAND_HANDLERS:
+        descriptor = (command, description)
+        descriptors.append(descriptor)
+
+    builder = ApplicationBuilder().token(bot_token)
+
+    async def post_init(application: Application) -> None:
+        application.bot_data["cid"] = cid
+        application.bot_data["admin_cid"] = admin_cid
+
+        await application.bot.set_my_commands(descriptors)
+
+    builder.post_init(post_init)
+    application = builder.build()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=6, minute=21),
+        args=[application],
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=9, minute=26),
+        args=[application],
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=18, minute=21),
+        args=[application],
+    )
+    scheduler.add_job(
+        daily_e,
+        CronTrigger(hour=21, minute=26),
+        args=[application],
+    )
+
+    for command, callback, _ in COMMAND_HANDLERS:
+        handler = CommandHandler(command, callback)
+        application.add_handler(handler)
+
+    members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
+    application.add_handler(members_handler)
+
+    try:
+        await application.initialize()
+        await post_init(application)
+
+        await application.start()
+
+        assert application.updater is not None
+        await application.updater.start_polling()
+
+        scheduler.start()
+
+        await asyncio.Future()
+    finally:
+        assert application.updater is not None
+        await application.updater.stop()
+
+        await application.stop()
+        await application.shutdown()
+
+
 def main() -> None:
     """
     Load configurations & start listening.
@@ -781,51 +863,7 @@ def main() -> None:
 
     bot_token = os.environ["BOT_TOKEN"]
 
-    descriptors: list[tuple[str, str]] = []
-    for command, _, description in COMMAND_HANDLERS:
-        descriptor = (command, description)
-        descriptors.append(descriptor)
-
-    builder = ApplicationBuilder().token(bot_token)
-
-    async def post_init(application: Application) -> None:
-        application.bot_data["ADMIN_CID"] = admin_cid
-        await application.bot.set_my_commands(descriptors)
-
-    builder.post_init(post_init)
-    application = builder.build()
-
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=6, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=9, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=18, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=21, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
-    )
-
-    for command, callback, _ in COMMAND_HANDLERS:
-        handler = CommandHandler(command, callback)
-        application.add_handler(handler)
-
-    members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
-    application.add_handler(members_handler)
-
-    application.run_polling()
-    scheduler.start()
+    asyncio.run(run(cid, admin_cid, bot_token))
 
 
 if __name__ == "__main__":

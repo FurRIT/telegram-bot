@@ -13,7 +13,6 @@ import datetime
 import textwrap
 import argparse
 
-import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from telegram import Update, Bot, User

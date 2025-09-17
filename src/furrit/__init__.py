@@ -515,9 +515,10 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    user_id = message.from_user.id
-    assert user_id is not None
-    if user_id not in ADMINS_IDS:
+    from_user = message.from_user
+    assert from_user is not None
+
+    if from_user.id not in ADMINS_IDS:
         await context.bot.send_message(
             chat_id=effective_chat.id, text="Only admins can add fines"
         )

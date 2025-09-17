@@ -29,7 +29,7 @@ class RoleDeriver:
     Derives a User's Role using the context provided during construction.
     """
 
-    admin_ids: set[int]
+    admin_ids: frozenset[int]
 
     def derive(self, user: telegram.User) -> Role:
         """

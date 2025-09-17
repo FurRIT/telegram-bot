@@ -56,8 +56,6 @@ from furrit.messages import (
     COMMANDS_MESSAGE,
 )
 
-from furrit.admins import ADMINS_IDS
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -832,7 +830,9 @@ COMMAND_HANDLERS = [
 ]
 
 
-async def run(cid: int, admin_cid: int, bot_token: str) -> None:
+async def run(
+    cid: int, admin_cid: int, bot_token: str, admin_ids: frozenset[int]
+) -> None:
     """
     Run the Application.
     """
@@ -842,7 +842,7 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
         descriptors.append(descriptor)
 
     builder = ApplicationBuilder().token(bot_token)
-    role_deriver = RoleDeriver(ADMINS_IDS)
+    role_deriver = RoleDeriver(admin_ids)
 
     async def post_init(application: Application) -> None:
         application.bot_data["cid"] = cid
@@ -926,7 +926,9 @@ def main() -> None:
         sys.exit(1)
 
     assert m_config is not None
-    asyncio.run(run(m_config.cid, m_config.admin_cid, m_config.bot_token))
+    asyncio.run(
+        run(m_config.cid, m_config.admin_cid, m_config.bot_token, m_config.admin_ids)
+    )
 
 
 if __name__ == "__main__":

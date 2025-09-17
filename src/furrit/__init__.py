@@ -289,6 +289,19 @@ async def cmd_pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    from_user = message.from_user
+    assert from_user is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You must be an administrator to pan",
+        )
+        return
+
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
         await context.bot.send_message(
@@ -328,8 +341,21 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     assert message is not None
 
+    from_user = message.from_user
+    assert from_user is not None
+
     effective_chat = update.effective_chat
     assert effective_chat is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You must be an administrator to barn",
+        )
+        return
 
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
@@ -471,6 +497,22 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     assert message is not None
 
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You must be an administrator to unfine",
+        )
+        return
+
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
         to_reply_to = message.message_id
@@ -520,9 +562,13 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from_user = message.from_user
     assert from_user is not None
 
-    if from_user.id not in ADMINS_IDS:
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
         await context.bot.send_message(
-            chat_id=effective_chat.id, text="Only admins can add fines"
+            chat_id=effective_chat.id,
+            text="You must be an administrator to fine",
         )
         return
 

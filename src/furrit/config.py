@@ -34,13 +34,13 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         except tomllib.TOMLDecodeError:
             return (None, "error occured during toml decoding")
 
-    if not "cid" in raw and isinstance(raw["cid"], int):
+    if not ("cid" in raw and isinstance(raw["cid"], int)):
         return (None, ".cid must exist and be of type int")
 
-    if not "admin_cid" in raw and isinstance(raw["admin_cid"], int):
+    if not ("admin_cid" in raw and isinstance(raw["admin_cid"], int)):
         return (None, ".admin_cid must exist and be of type int")
 
-    if not "bot_token" in raw and isinstance(raw["bot_token"], str):
+    if not ("bot_token" in raw and isinstance(raw["bot_token"], str)):
         return (None, ".bot_token must exist and be of type str")
 
     cid: int = raw["cid"]

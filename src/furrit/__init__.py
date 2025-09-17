@@ -27,6 +27,7 @@ from telegram.ext import (
 )
 import telegram.helpers
 
+from furrit.role import Role, RoleDeriver
 from furrit.config import load_config
 from furrit.db.users import (
     get_user_fines,
@@ -69,6 +70,7 @@ class BotData(TypedDict):
 
     cid: int
     admin_cid: int
+    role_deriver: RoleDeriver
 
 
 async def _random_sticker_pack_sticker(
@@ -794,10 +796,12 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
         descriptors.append(descriptor)
 
     builder = ApplicationBuilder().token(bot_token)
+    role_deriver = RoleDeriver(ADMINS_IDS)
 
     async def post_init(application: Application) -> None:
         application.bot_data["cid"] = cid
         application.bot_data["admin_cid"] = admin_cid
+        application.bot_data["role_deriver"] = role_deriver
 
         await application.bot.set_my_commands(descriptors)
 

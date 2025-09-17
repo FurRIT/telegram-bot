@@ -7,7 +7,7 @@ import os
 import random
 import asyncio
 import logging
-from datetime import datetime, timedelta  # imported for /ban method
+import datetime
 
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
@@ -396,7 +396,7 @@ async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-BAN_COMMAND_LENGTH = timedelta(minutes=5)
+BAN_COMMAND_LENGTH = datetime.timedelta(minutes=5)
 
 
 async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -437,7 +437,7 @@ async def cmd_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.ban_chat_member(
         chat_id=effective_chat.id,
         user_id=user_to_ban.id,
-        until_date=(datetime.now() + BAN_COMMAND_LENGTH),
+        until_date=(datetime.datetime.now() + BAN_COMMAND_LENGTH),
         revoke_messages=False,
     )
 
@@ -613,7 +613,7 @@ async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user, quote = user_quote
 
-    date = datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date = datetime.datetime.fromisoformat(quote.quoter_msg_sent_at)
     date_fmted = date.strftime("%b %d %Y")
 
     response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'

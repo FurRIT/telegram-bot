@@ -7,11 +7,12 @@ import os
 import random
 import logging
 from datetime import datetime, timedelta  # imported for /ban method
-
+from typing import Optional  # for checking if users stats change
 import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from telegram import Update, Bot, User
+from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
+from telegram.constants import ParseMode
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
@@ -765,6 +766,7 @@ COMMAND_HANDLERS = [
     ("fine", cmd_fine, "Use as a reply to manually fine a User."),
     ("unfine", cmd_unfine, "User as a reply to remove a fine from a User."),
 ]
+
 
 
 def main() -> None:

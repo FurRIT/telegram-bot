@@ -5,6 +5,7 @@ FurRIT Telegram Bot.
 import re
 import os
 import random
+import asyncio
 import logging
 from datetime import datetime, timedelta  # imported for /ban method
 
@@ -18,6 +19,7 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     Application,
+    Updater,
     filters,
 )
 import telegram.helpers
@@ -756,20 +758,10 @@ COMMAND_HANDLERS = [
 ]
 
 
-def main() -> None:
+async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     """
-    Load configurations & start listening.
+    Run the Application.
     """
-    dotenv.load_dotenv()
-
-    raw_cid = os.environ["CID"]
-    cid = int(raw_cid)
-
-    raw_admin_cid = os.environ["ADMIN_CID"]
-    admin_cid = int(raw_admin_cid)
-
-    bot_token = os.environ["BOT_TOKEN"]
-
     descriptors: list[tuple[str, str]] = []
     for command, _, description in COMMAND_HANDLERS:
         descriptor = (command, description)
@@ -787,23 +779,23 @@ def main() -> None:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         daily_e,
-        CronTrigger(hour=6, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
+        CronTrigger(hour=6, minute=21),
+        args=[application.bot],
     )
     scheduler.add_job(
         daily_e,
-        CronTrigger(hour=9, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
+        CronTrigger(hour=9, minute=26),
+        args=[application.bot],
     )
     scheduler.add_job(
         daily_e,
-        CronTrigger(hour=18, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
+        CronTrigger(hour=18, minute=21),
+        args=[application.bot],
     )
     scheduler.add_job(
         daily_e,
-        CronTrigger(hour=21, minute=21),  # Set desired time here (e.g., 9:00 AM)
-        args=[application.bot],  # Pass bot context
+        CronTrigger(hour=21, minute=26),
+        args=[application.bot],
     )
 
     for command, callback, _ in COMMAND_HANDLERS:
@@ -813,8 +805,41 @@ def main() -> None:
     members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
 
-    application.run_polling()
-    scheduler.start()
+    try:
+        await application.initialize()
+        await post_init(application)
+
+        await application.start()
+
+        assert application.updater is not None
+        await application.updater.start_polling()
+
+        scheduler.start()
+
+        await asyncio.Future()
+    finally:
+        assert application.updater is not None
+        await application.updater.stop()
+
+        await application.stop()
+        await application.shutdown()
+
+
+def main() -> None:
+    """
+    Load configurations & start listening.
+    """
+    dotenv.load_dotenv()
+
+    raw_cid = os.environ["CID"]
+    cid = int(raw_cid)
+
+    raw_admin_cid = os.environ["ADMIN_CID"]
+    admin_cid = int(raw_admin_cid)
+
+    bot_token = os.environ["BOT_TOKEN"]
+
+    asyncio.run(run(cid, admin_cid, bot_token))
 
 
 if __name__ == "__main__":

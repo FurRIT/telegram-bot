@@ -5,12 +5,14 @@ FurRIT Telegram Bot.
 from typing import TypedDict, cast
 import re
 import os
+import sys
 import random
 import asyncio
 import logging
 import datetime
+import textwrap
+import argparse
 
-import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from telegram import Update, Bot, User
@@ -25,6 +27,7 @@ from telegram.ext import (
 )
 import telegram.helpers
 
+from furrit.config import load_config
 from furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
@@ -512,9 +515,10 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    user_id = message.from_user.id
-    assert user_id is not None
-    if user_id not in ADMINS_IDS:
+    from_user = message.from_user
+    assert from_user is not None
+
+    if from_user.id not in ADMINS_IDS:
         await context.bot.send_message(
             chat_id=effective_chat.id, text="Only admins can add fines"
         )
@@ -853,17 +857,26 @@ def main() -> None:
     """
     Load configurations & start listening.
     """
-    dotenv.load_dotenv()
+    parser = argparse.ArgumentParser(prog="furrit")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="config.toml",
+        help="config file path (default %(default)s)",
+    )
+    args = parser.parse_args()
 
-    raw_cid = os.environ["CID"]
-    cid = int(raw_cid)
+    m_config, m_err = load_config(args.config)
+    if m_err is not None:
+        err_msg = "\n".join(
+            textwrap.wrap(f"error: {m_err}", subsequent_indent="       "),
+        )
+        print(err_msg, file=sys.stderr)
 
-    raw_admin_cid = os.environ["ADMIN_CID"]
-    admin_cid = int(raw_admin_cid)
+        sys.exit(1)
 
-    bot_token = os.environ["BOT_TOKEN"]
-
-    asyncio.run(run(cid, admin_cid, bot_token))
+    assert m_config is not None
+    asyncio.run(run(m_config.cid, m_config.admin_cid, m_config.bot_token))
 
 
 if __name__ == "__main__":

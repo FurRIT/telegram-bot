@@ -27,6 +27,7 @@ from telegram.ext import (
 )
 import telegram.helpers
 
+from furrit.role import Role, RoleDeriver
 from furrit.config import load_config
 from furrit.db.users import (
     get_user_fines,
@@ -55,8 +56,6 @@ from furrit.messages import (
     COMMANDS_MESSAGE,
 )
 
-from furrit.admins import ADMINS_IDS
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -69,6 +68,7 @@ class BotData(TypedDict):
 
     cid: int
     admin_cid: int
+    role_deriver: RoleDeriver
 
 
 async def _random_sticker_pack_sticker(
@@ -469,6 +469,22 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     assert message is not None
 
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You must be an administrator to unfine",
+        )
+        return
+
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
         to_reply_to = message.message_id
@@ -518,9 +534,13 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from_user = message.from_user
     assert from_user is not None
 
-    if from_user.id not in ADMINS_IDS:
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
         await context.bot.send_message(
-            chat_id=effective_chat.id, text="Only admins can add fines"
+            chat_id=effective_chat.id,
+            text="You must be an administrator to fine",
         )
         return
 
@@ -784,7 +804,9 @@ COMMAND_HANDLERS = [
 ]
 
 
-async def run(cid: int, admin_cid: int, bot_token: str) -> None:
+async def run(
+    cid: int, admin_cid: int, bot_token: str, admin_ids: frozenset[int]
+) -> None:
     """
     Run the Application.
     """
@@ -794,10 +816,12 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
         descriptors.append(descriptor)
 
     builder = ApplicationBuilder().token(bot_token)
+    role_deriver = RoleDeriver(admin_ids)
 
     async def post_init(application: Application) -> None:
         application.bot_data["cid"] = cid
         application.bot_data["admin_cid"] = admin_cid
+        application.bot_data["role_deriver"] = role_deriver
 
         await application.bot.set_my_commands(descriptors)
 
@@ -876,7 +900,9 @@ def main() -> None:
         sys.exit(1)
 
     assert m_config is not None
-    asyncio.run(run(m_config.cid, m_config.admin_cid, m_config.bot_token))
+    asyncio.run(
+        run(m_config.cid, m_config.admin_cid, m_config.bot_token, m_config.admin_ids)
+    )
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ class Config:
     cid: int
     admin_cid: int
     bot_token: str
+    admin_ids: frozenset[int]
 
 
 def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
@@ -43,9 +44,19 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
     if not ("bot_token" in raw and isinstance(raw["bot_token"], str)):
         return (None, ".bot_token must exist and be of type str")
 
+    if not ("admin_ids" in raw and isinstance(raw["admin_ids"], list)):
+        return (None, ".admin_ids must exist and be of type list")
+
+    for i, item in enumerate(raw["admin_ids"]):
+        if not isinstance(item, int):
+            return (None, f".admin_ids[{i}] must be of type int")
+
+    r_admin_ids: list[int] = raw["admin_ids"]
+    admin_ids = frozenset(r_admin_ids)
+
     cid: int = raw["cid"]
     admin_cid: int = raw["admin_cid"]
     bot_token: str = raw["bot_token"]
 
-    config = Config(cid, admin_cid, bot_token)
+    config = Config(cid, admin_cid, bot_token, admin_ids)
     return (config, None)

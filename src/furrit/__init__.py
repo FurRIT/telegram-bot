@@ -287,9 +287,6 @@ async def cmd_pan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    from_user = message.from_user
-    assert from_user is not None
-
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
         await context.bot.send_message(
@@ -328,9 +325,6 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """\\barn command"""
     message = update.message
     assert message is not None
-
-    from_user = message.from_user
-    assert from_user is not None
 
     effective_chat = update.effective_chat
     assert effective_chat is not None

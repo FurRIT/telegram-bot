@@ -917,6 +917,39 @@ async def daily_e(application: Application):
     await application.bot.send_message(chat_id=bot_data["cid"], text="e")
 
 
+async def daily_quote(application: Application):
+    """
+    Send a random daily quote.
+    """
+    bot_data = cast(BotData, application.bot_data)
+    cid = bot_data["cid"]
+
+    user_quote = random_quote(cid)
+    if user_quote is None:
+        return
+
+    user, quote = user_quote
+
+    date = datetime.datetime.now()
+    date_fmted = date.strftime("%a %b %d %Y")
+
+    header_msg = f"FurRIT Quote of the Day for _{date_fmted}_:"
+    await application.bot.send_message(
+        chat_id=cid, text=header_msg, parse_mode="MarkdownV2"
+    )
+
+    quote_date = datetime.datetime.fromisoformat(quote.quoter_msg_sent_at)
+    quote_date_fmted = quote_date.strftime("%b %d %Y")
+
+    response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'
+    response_esc = telegram.helpers.escape_markdown(response, version=2)
+    response_esc += f"_{quote_date_fmted}_"
+
+    await application.bot.send_message(
+        chat_id=cid, text=response_esc, parse_mode="MarkdownV2"
+    )
+
+
 COMMAND_HANDLERS = [
     ("commands", cmd_commands, "Get the list of commands."),
     ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
@@ -1008,6 +1041,11 @@ async def run(
     scheduler.add_job(
         daily_e,
         CronTrigger(hour=21, minute=26),
+        args=[application],
+    )
+    scheduler.add_job(
+        daily_quote,
+        CronTrigger(hour=10, minute=56),
         args=[application],
     )
 

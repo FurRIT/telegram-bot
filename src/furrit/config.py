@@ -17,6 +17,7 @@ class Config:
     admin_cid: int
     bot_token: str
     admin_ids: frozenset[int]
+    msgs_dir: str
 
 
 def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
@@ -51,6 +52,19 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         if not isinstance(item, int):
             return (None, f".admin_ids[{i}] must be of type int")
 
+    if not ("msgs_dir" in raw and isinstance(raw["msgs_dir"], str)):
+        return (None, ".msgs_dir must exist and be of type str")
+
+    r_msgs_dir: str = raw["msgs_dir"]
+    if not os.path.isabs(r_msgs_dir):
+        conf_dir = os.path.dirname(path)
+        msgs_dir = os.path.relpath(r_msgs_dir, conf_dir)
+    else:
+        msgs_dir = r_msgs_dir
+
+    if not os.path.isdir(msgs_dir):
+        return (None, f"error: .msgs_dir '{msgs_dir}' does not exist or is not a dir")
+
     r_admin_ids: list[int] = raw["admin_ids"]
     admin_ids = frozenset(r_admin_ids)
 
@@ -58,5 +72,5 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
     admin_cid: int = raw["admin_cid"]
     bot_token: str = raw["bot_token"]
 
-    config = Config(cid, admin_cid, bot_token, admin_ids)
+    config = Config(cid, admin_cid, bot_token, admin_ids, msgs_dir)
     return (config, None)

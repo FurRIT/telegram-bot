@@ -922,6 +922,44 @@ async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
 
 
+def _derive_bulletin_msg() -> str:
+    """
+    Derive the name of the current week's bulletin in the message store.
+    """
+
+    today = datetime.date.today()
+    wkday = today.isoweekday()
+
+    dy_off = wkday % 7
+    dt_off = datetime.timedelta(dy_off)
+
+    target = today - dt_off
+
+    name = f"bulletin.{target.year}.{target.month:02}.{target.day:02}"
+    return name
+
+
+async def cmd_bulletin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Bulletin command.
+    """
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    msg_name = _derive_bulletin_msg()
+
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get(msg_name)
+
+    if msg is None:
+        logging.warning("could not find bulletin message %s", msg_name)
+
+        await effective_chat.send_message("Could not find a bulletin for this week.")
+        return
+
+    await effective_chat.send_message(text=msg, parse_mode="HTML")
+
+
 async def daily_e(application: Application):
     """
     Send an 'e' message to the main chat.
@@ -968,6 +1006,7 @@ COMMAND_HANDLERS = [
     ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
     ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
     ("welcome", cmd_welcome, "Get welcome information for new Users."),
+    ("bulletin", cmd_bulletin, "Get the weekly bulletin for this week."),
     (
         "channels_sfw",
         cmd_channels_sfw,

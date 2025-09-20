@@ -6,8 +6,6 @@ import os
 import os.path
 import dataclasses
 
-import telegram.helpers
-
 
 @dataclasses.dataclass(frozen=True)
 class MessageStore:
@@ -17,12 +15,12 @@ class MessageStore:
 
     mapping: dict[str, str]
 
-    def get(self, prefix: str) -> str:
+    def get(self, prefix: str) -> str | None:
         """
         Get a message corresponding to a message.
         """
         if prefix not in self.mapping:
-            raise ValueError(f"message {prefix} does not exist")
+            return None
 
         return self.mapping[prefix]
 

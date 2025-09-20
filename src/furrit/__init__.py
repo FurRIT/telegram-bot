@@ -229,18 +229,6 @@ async def search_handle_vore(
     return True
 
 
-async def welcome_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Sends the welcome message when someone joins the chat
-    """
-    if update.message is None or update.message.new_chat_members is None:
-        return
-
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
-    )
-
-
 def extract_status_change(
     chat_member_update: ChatMemberUpdated,
 ) -> tuple[bool, bool] | None:
@@ -318,17 +306,6 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
         and message.text.startswith("/")
     ):
         return
-    #
-    # result = extract_status_change(update.chat_member)
-    # if result is None:
-    #     return
-    #
-    # was_member, is_member = result
-    #
-    # if not was_member and is_member:
-    #     await context.bot.send_message(
-    #         chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
-    #     )
 
     # NOTE: avoid checking for 'awoo' and 'vore' variants if the '@admin' check
     # is triggered; 'fun' stuff shouldn't trigger during admin summons
@@ -930,9 +907,6 @@ async def run(
 
     members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
-
-    # welcome_handler = MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_user)
-    # application.add_handler(welcome_handler)
 
     application.add_handler(
         ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)

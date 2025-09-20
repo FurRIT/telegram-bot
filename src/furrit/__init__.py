@@ -67,6 +67,7 @@ class BotData(TypedDict):
     cmds_msg: str
     msg_store: MessageStore
     role_deriver: RoleDeriver
+    summon_tracker: SummonTracker
 
 
 async def _random_sticker_pack_sticker(

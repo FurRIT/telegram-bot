@@ -256,10 +256,12 @@ def extract_status_change(
     return was_member, is_member
 
 
-async def greet_chat_members(
+async def handle_chat_membership(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Greets new users in chats and announces when someone leaves"""
+    """
+    Greets new users in chats and announces when someone leaves.
+    """
     chat_member = update.chat_member
     if chat_member is None:
         return
@@ -1019,7 +1021,7 @@ async def run(
     application.add_handler(members_handler)
 
     application.add_handler(
-        ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
+        ChatMemberHandler(handle_chat_membership, ChatMemberHandler.CHAT_MEMBER)
     )
 
     try:

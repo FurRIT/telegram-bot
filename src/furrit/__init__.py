@@ -1052,7 +1052,7 @@ async def run(
     )
     scheduler.add_job(
         daily_quote,
-        CronTrigger(hour=10, minute=56),
+        CronTrigger(hour=7, minute=0),
         args=[application],
     )
 

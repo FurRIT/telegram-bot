@@ -49,6 +49,7 @@ from furrit.db.quotes import (
     derive_quote_stats,
     derive_user_quote_stats,
 )
+from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
 
 logging.basicConfig(
@@ -321,6 +322,11 @@ async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_T
     if not at_admined:
         await search_handle_awoo(update, context)
         await search_handle_vore(update, context)
+
+    bot_data = cast(BotData, context.bot_data)
+    summon_tracker = bot_data["summon_tracker"]
+
+    await summon_tracker.handle_update(update, context)
 
 
 PAN_STICKER_PACK_NAME = "FURRIT_PAN"
@@ -1006,6 +1012,7 @@ async def run(
     bot_token: str,
     admin_ids: frozenset[int],
     msg_store: MessageStore,
+    summon_tracker: SummonTracker,
 ) -> None:
     """
     Run the Application.
@@ -1033,6 +1040,7 @@ async def run(
         application.bot_data["cmds_msg"] = cmds_msg
         application.bot_data["msg_store"] = msg_store
         application.bot_data["role_deriver"] = role_deriver
+        application.bot_data["summon_tracker"] = summon_tracker
 
         await application.bot.set_my_commands(descriptors)
 
@@ -1112,9 +1120,18 @@ def main() -> None:
     assert m_config is not None
     config = m_config
 
+    summon_tracker = SummonTracker.from_sections(config.cid, config.summons)
     msg_store = load_store_dir(config.msgs_dir)
+
     asyncio.run(
-        run(config.cid, config.admin_cid, config.bot_token, config.admin_ids, msg_store)
+        run(
+            config.cid,
+            config.admin_cid,
+            config.bot_token,
+            config.admin_ids,
+            msg_store,
+            summon_tracker,
+        )
     )
 
 

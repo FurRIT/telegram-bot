@@ -3,3 +3,14 @@ admin_cid = 0     # admin chat identifier
 bot_token = ""    # bot token
 admin_ids = []    # administrator telegram ids
 msgs_dir = "msgs" # relative or absolute message path
+
+
+[summon.category] # category should be named for the category
+keywords = ["physics"] # keywords that should result in a summon
+users = [
+    { tg_id = 0, name = "COMMON_NAME", tg_username = "TG_USERNAME" },
+    # telegram identifier, common name, telegram username
+]
+threshold = 3       # number of messages a keyword appears in before a summon - optional
+within    = 3600000 # time span within which the threshold must be met (ms) - optional
+cooldown  = 900000  # time span after a summon where a new summon cannot occur (ms) - optional

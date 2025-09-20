@@ -910,6 +910,9 @@ async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
 
 
 async def daily_e(application: Application):
+    """
+    Send an 'e' message to the main chat.
+    """
     bot_data = cast(BotData, application.bot_data)
     await application.bot.send_message(chat_id=bot_data["cid"], text="e")
 
@@ -999,17 +1002,7 @@ async def run(
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         daily_e,
-        CronTrigger(hour=6, minute=21),
-        args=[application],
-    )
-    scheduler.add_job(
-        daily_e,
         CronTrigger(hour=9, minute=26),
-        args=[application],
-    )
-    scheduler.add_job(
-        daily_e,
-        CronTrigger(hour=18, minute=21),
         args=[application],
     )
     scheduler.add_job(

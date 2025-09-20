@@ -3,6 +3,7 @@ FurRIT Telegram Bot.
 """
 
 from typing import TypedDict, cast
+import io
 import re
 import os
 import sys
@@ -47,14 +48,7 @@ from furrit.db.quotes import (
     derive_quote_stats,
     derive_user_quote_stats,
 )
-from furrit.messages import (
-    LINKS_MESSAGE,
-    CHATS_MESSAGE,
-    RULES_MESSAGE,
-    CHANNELS_SFW_MESSAGE,
-    CHANNELS_NSFW_MESSAGE,
-    COMMANDS_MESSAGE,
-)
+from furrit.message import MessageStore, load_store_dir
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -68,6 +62,8 @@ class BotData(TypedDict):
 
     cid: int
     admin_cid: int
+    cmds_msg: str
+    msg_store: MessageStore
     role_deriver: RoleDeriver
 
 
@@ -359,47 +355,112 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'links' message.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("links")
+
+    if msg is None:
+        logging.error("could not find message links")
+        return
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
     )
 
 
 async def cmd_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'links' message.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("links")
+
+    if msg is None:
+        logging.error("could not find message links")
+        return
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHATS_MESSAGE
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
     )
 
 
 async def cmd_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'rules' message.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("rules")
+
+    if msg is None:
+        logging.error("could not find message rules")
+        return
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=RULES_MESSAGE
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
     )
 
 
 async def cmd_channels_sfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'channels.sfw' message.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("channels.sfw")
+
+    if msg is None:
+        logging.error("could not find message channels.sfw")
+        return
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHANNELS_SFW_MESSAGE
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
     )
 
 
 async def cmd_channels_nsfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'channels.nsfw' message.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("channels.nsfw")
+
+    if msg is None:
+        logging.error("could not find message channels.nsfw")
+        return
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=CHANNELS_NSFW_MESSAGE
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
     )
 
 
@@ -407,8 +468,10 @@ async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
+    bot_data = cast(BotData, context.bot_data)
+
     await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="MarkdownV2", text=COMMANDS_MESSAGE
+        chat_id=effective_chat.id, parse_mode="HTML", text=bot_data["cmds_msg"]
     )
 
 
@@ -805,15 +868,28 @@ COMMAND_HANDLERS = [
 
 
 async def run(
-    cid: int, admin_cid: int, bot_token: str, admin_ids: frozenset[int]
+    cid: int,
+    admin_cid: int,
+    bot_token: str,
+    admin_ids: frozenset[int],
+    msg_store: MessageStore,
 ) -> None:
     """
     Run the Application.
     """
+
+    cmds_msg_buf = io.StringIO()
+    cmds_msg_buf.write("<strong>Commands</strong>\n")
+
     descriptors: list[tuple[str, str]] = []
     for command, _, description in COMMAND_HANDLERS:
+        cmds_msg_buf.write(f"• <code>{command}</code> {description}\n")
+
         descriptor = (command, description)
         descriptors.append(descriptor)
+
+    cmds_msg_buf.seek(0)
+    cmds_msg = cmds_msg_buf.read()
 
     builder = ApplicationBuilder().token(bot_token)
     role_deriver = RoleDeriver(admin_ids)
@@ -821,6 +897,8 @@ async def run(
     async def post_init(application: Application) -> None:
         application.bot_data["cid"] = cid
         application.bot_data["admin_cid"] = admin_cid
+        application.bot_data["cmds_msg"] = cmds_msg
+        application.bot_data["msg_store"] = msg_store
         application.bot_data["role_deriver"] = role_deriver
 
         await application.bot.set_my_commands(descriptors)
@@ -900,8 +978,11 @@ def main() -> None:
         sys.exit(1)
 
     assert m_config is not None
+    config = m_config
+
+    msg_store = load_store_dir(config.msgs_dir)
     asyncio.run(
-        run(m_config.cid, m_config.admin_cid, m_config.bot_token, m_config.admin_ids)
+        run(config.cid, config.admin_cid, config.bot_token, config.admin_ids, msg_store)
     )
 
 

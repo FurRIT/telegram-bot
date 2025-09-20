@@ -465,6 +465,9 @@ async def cmd_channels_nsfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show a derived message that summarizes commands.
+    """
     effective_chat = update.effective_chat
     assert effective_chat is not None
 

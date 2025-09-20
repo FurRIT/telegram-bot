@@ -418,6 +418,28 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Show 'welcome' message.
+    """
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("welcome")
+
+    if msg is None:
+        logging.error("could not find message welcome")
+        return
+
+    await context.bot.send_message(
+        chat_id=effective_chat.id,
+        parse_mode="HTML",
+        text=msg,
+        disable_web_page_preview=True,
+    )
+
+
 async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Show 'links' message.
@@ -896,6 +918,7 @@ COMMAND_HANDLERS = [
     ("commands", cmd_commands, "Get the list of commands."),
     ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
     ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
+    ("welcome", cmd_welcome, "Get welcome information for new Users."),
     (
         "channels_sfw",
         cmd_channels_sfw,

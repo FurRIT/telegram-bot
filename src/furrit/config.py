@@ -93,6 +93,9 @@ def _load_summon_section(
     if not isinstance(r_keywords, list):
         return (None, f".summon.{name}.keywords must be a list")
 
+    if len(r_keywords) == 0:
+        return (None, f".summon.{name}.keywords must have at least one element")
+
     for i, part in enumerate(r_keywords):
         if not isinstance(part, str):
             typ = type(part).__name__

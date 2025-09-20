@@ -23,11 +23,21 @@ class ConfigUser:
 class SummonSection:
     """
     A `summon.*` section in the Configuration.
+
+    name       The Section Name.
+    keywords   Keywords that should cause a summon.
+    users      The user pool to summon from.
+    threshold  Number of messages a keyword appears in before a summon.
+    within     Time span within which the threshold must be met (in ms).
+    cooldown   Time span after a summon where a new summon cannot occur (in ms).
     """
 
     name: str
     keywords: frozenset[str]
     users: frozenset[ConfigUser]
+    threshold: int | None
+    within: int | None
+    cooldown: int | None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -111,7 +121,28 @@ def _load_summon_section(
 
     users: frozenset[ConfigUser] = frozenset(de_users)
 
-    section = SummonSection(name, keywords, users)
+    if "threshold" in body:
+        if not isinstance(body["threshold"], int):
+            return (None, f".summon.{name}.threshold must be a int")
+        threshold = body["threshold"]
+    else:
+        threshold = None
+
+    if "within" in body:
+        if not isinstance(body["within"], int):
+            return (None, f".summon.{name}.within must be a int")
+        within = body["within"]
+    else:
+        within = None
+
+    if "cooldown" in body:
+        if not isinstance(body["cooldown"], int):
+            return (None, f".summon.{name}.cooldown must be a int")
+        cooldown = body["cooldown"]
+    else:
+        cooldown = None
+
+    section = SummonSection(name, keywords, users, threshold, within, cooldown)
     return (section, None)
 
 

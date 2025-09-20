@@ -60,3 +60,36 @@ COMMANDS_MESSAGE = r"""The list of user commands for the Bot:
 /rules : Lists all the current rules of furrit
 /channels : lists furrit channels
 /links : Lists links to furrit channels, chats, sites, etc"""
+
+WELCOME_MESSAGE = r"""*Welcome to FurRIT\!*
+\The official group chat for the furries of RIT
+
+*Furrit Rules:*
+\- FurRIT is for people who identify as members of the Furry Fandom
+\- Group Chat is 18\+
+\- This community is a safe place for everyone of all genders, sexualities, races, etc\.
+\- Messaging that solicits or elicits sexual arousal should not be shared \(keep that in NSFW chats\)
+  \> Forbidden content includes: moderate\-heavy flirting, irl NSFW stories/content, porn, and kinks
+  \> Permitted content includes: suggestive furry memes \(no genitals\), jokes, and non\-sexual adult topics \(e\.g\. swearing, alcohol, violence\)
+Don't be horny in Main
+Reply to any message with @admin \{optional note\} to flag it for attention\.
+
+**Membership Policy** \(must satisfy at least one of the following\):
+\- Current RIT Students
+\- Alumni
+\- Staff
+\- Faculty
+\- Accepted to RIT
+\- Significant Other/Spouse of Member
+
+FurRIT\-Exclusive Resources
+\- FurRIT Telegram Folder \(https://t\.me/addlist/gy2K43K2\_tBjOWFh\) — All FurRIT Chats and Channels
+\- ROOVille \(https://t\.me/\+5\-hPmg8gUd40MWNh\) — NSFW art\-sharing chat \(admin approval required\)
+\- FurRIT After Dark \(https://t\.me/\+u5NuEZcx3npmZDI5\) — NSFW adult chat \(admin approval required\)
+\- FurRIT Discord \(https://discord\.gg/kS4rryY\)
+
+__Use /channels_sfw and /channels_nsfw to get a list of outside channels and chats run by FurRIT members\.__
+
+**FurRIT bot resources**
+Type /commands for a list of bot commands
+"""

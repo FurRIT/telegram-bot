@@ -275,17 +275,36 @@ async def handle_chat_membership(
         return
 
     bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("welcome")
-    if msg is None:
+    welcome_msg = bot_data["msg_store"].get("welcome")
+    if welcome_msg is None:
         logging.error("could not find message welcome")
         return
 
     was_member, is_member = result
+
     if not was_member and is_member:
         await context.bot.send_message(
             chat_id=effective_chat.id,
             parse_mode="HTML",
-            text=msg,
+            text=welcome_msg,
+            disable_web_page_preview=True,
+        )
+
+    if not is_member and was_member:
+        admin_cid = bot_data["admin_cid"]
+
+        user = chat_member.old_chat_member.user
+        if user is None:
+            return
+
+        leave_msg = f"{user.first_name}"
+        if user.username is not None:
+            leave_msg += f" (@{user.username})"
+
+        leave_msg += " left FurRIT Main."
+        await context.bot.send_message(
+            chat_id=admin_cid,
+            text=leave_msg,
         )
 
 

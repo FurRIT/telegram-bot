@@ -42,13 +42,13 @@ from furrit.db.users import (
     try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from src.furrit.db.quotes import (
+from furrit.db.quotes import (
     search_quotes,
     random_quote,
     derive_quote_stats,
     derive_user_quote_stats,
 )
-from src.furrit.messages import (
+from furrit.messages import (
     LINKS_MESSAGE,
     CHATS_MESSAGE,
     RULES_MESSAGE,

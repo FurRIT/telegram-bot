@@ -5,13 +5,14 @@ FurRIT Telegram Bot.
 from typing import TypedDict, cast
 import re
 import os
+import sys
 import random
 import asyncio
 import logging
 import datetime
+import textwrap
+import argparse
 
-from typing import Optional
-import dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
@@ -22,11 +23,14 @@ from telegram.ext import (
     MessageHandler,
     Application,
     Updater,
-    filters, ChatMemberHandler,
+    filters,
+    ChatMemberHandler,
 )
 import telegram.helpers
 
-from src.furrit.db.users import (
+from furrit.role import Role, RoleDeriver
+from furrit.config import load_config
+from furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
     add_pan_count,
@@ -54,8 +58,6 @@ from src.furrit.messages import (
     WELCOME_MESSAGE,
 )
 
-from src.furrit.admins import ADMINS_IDS
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -68,6 +70,7 @@ class BotData(TypedDict):
 
     cid: int
     admin_cid: int
+    role_deriver: RoleDeriver
 
 
 async def _random_sticker_pack_sticker(
@@ -237,14 +240,19 @@ async def welcome_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=LINKS_MESSAGE
     )
 
-def extract_status_change(chat_member_update: ChatMemberUpdated) -> Optional[tuple[bool, bool]]:
+
+def extract_status_change(
+    chat_member_update: ChatMemberUpdated,
+) -> tuple[bool, bool] | None:
     """Takes a ChatMemberUpdated instance and extracts whether the 'old_chat_member' was a member
     of the chat and whether the 'new_chat_member' is a member of the chat. Returns None, if
     the status didn't change.
     """
 
     status_change = chat_member_update.difference().get("status")
-    old_is_member, new_is_member = chat_member_update.difference().get("is_member", (None, None))
+    old_is_member, new_is_member = chat_member_update.difference().get(
+        "is_member", (None, None)
+    )
 
     if status_change is None:
         return None
@@ -264,7 +272,9 @@ def extract_status_change(chat_member_update: ChatMemberUpdated) -> Optional[tup
     return was_member, is_member
 
 
-async def greet_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def greet_chat_members(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     """Greets new users in chats and announces when someone leaves"""
     result = extract_status_change(update.chat_member)
     if result is None:
@@ -274,9 +284,10 @@ async def greet_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not was_member and is_member:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, parse_mode="MarkdownV2", text=WELCOME_MESSAGE
+            chat_id=update.effective_chat.id,
+            parse_mode="MarkdownV2",
+            text=WELCOME_MESSAGE,
         )
-
 
 
 async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -532,6 +543,22 @@ async def cmd_unfine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     assert message is not None
 
+    from_user = message.from_user
+    assert from_user is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You must be an administrator to unfine",
+        )
+        return
+
     reply_to_message = message.reply_to_message
     if reply_to_message is None:
         to_reply_to = message.message_id
@@ -578,11 +605,16 @@ async def cmd_fine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     assert effective_chat is not None
 
-    user_id = message.from_user.id
-    assert user_id is not None
-    if user_id not in ADMINS_IDS:
+    from_user = message.from_user
+    assert from_user is not None
+
+    bot_data = cast(BotData, context.bot_data)
+    role = bot_data["role_deriver"].derive(from_user)
+
+    if role != Role.ADMINISTRATOR:
         await context.bot.send_message(
-            chat_id=effective_chat.id, text="Only admins can add fines"
+            chat_id=effective_chat.id,
+            text="You must be an administrator to fine",
         )
         return
 
@@ -846,7 +878,9 @@ COMMAND_HANDLERS = [
 ]
 
 
-async def run(cid: int, admin_cid: int, bot_token: str) -> None:
+async def run(
+    cid: int, admin_cid: int, bot_token: str, admin_ids: frozenset[int]
+) -> None:
     """
     Run the Application.
     """
@@ -856,10 +890,12 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
         descriptors.append(descriptor)
 
     builder = ApplicationBuilder().token(bot_token)
+    role_deriver = RoleDeriver(admin_ids)
 
     async def post_init(application: Application) -> None:
         application.bot_data["cid"] = cid
         application.bot_data["admin_cid"] = admin_cid
+        application.bot_data["role_deriver"] = role_deriver
 
         await application.bot.set_my_commands(descriptors)
 
@@ -898,7 +934,9 @@ async def run(cid: int, admin_cid: int, bot_token: str) -> None:
     # welcome_handler = MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_user)
     # application.add_handler(welcome_handler)
 
-    application.add_handler(ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER))
+    application.add_handler(
+        ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
+    )
 
     try:
         await application.initialize()
@@ -924,17 +962,28 @@ def main() -> None:
     """
     Load configurations & start listening.
     """
-    dotenv.load_dotenv()
+    parser = argparse.ArgumentParser(prog="furrit")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="config.toml",
+        help="config file path (default %(default)s)",
+    )
+    args = parser.parse_args()
 
-    raw_cid = os.environ["CID"]
-    cid = int(raw_cid)
+    m_config, m_err = load_config(args.config)
+    if m_err is not None:
+        err_msg = "\n".join(
+            textwrap.wrap(f"error: {m_err}", subsequent_indent="       "),
+        )
+        print(err_msg, file=sys.stderr)
 
-    raw_admin_cid = os.environ["ADMIN_CID"]
-    admin_cid = int(raw_admin_cid)
+        sys.exit(1)
 
-    bot_token = os.environ["BOT_TOKEN"]
-
-    asyncio.run(run(cid, admin_cid, bot_token))
+    assert m_config is not None
+    asyncio.run(
+        run(m_config.cid, m_config.admin_cid, m_config.bot_token, m_config.admin_ids)
+    )
 
 
 if __name__ == "__main__":

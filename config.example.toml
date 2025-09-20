@@ -1,0 +1,4 @@
+cid = 0        # main chat identifier
+admin_cid = 0  # admin chat identifier
+bot_token = "" # bot token
+admin_ids = [] # administrator telegram ids

@@ -16,7 +16,7 @@ import argparse
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
-from telegram import Update, Bot, User
+from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
@@ -25,6 +25,7 @@ from telegram.ext import (
     Application,
     Updater,
     filters,
+    ChatMemberHandler,
 )
 import telegram.helpers
 
@@ -221,6 +222,69 @@ async def search_handle_vore(
     sticker = await _random_sticker_pack_sticker(VORE_STICKER_PACK_NAME, context)
     await message.reply_sticker(sticker=sticker, reply_to_message_id=message.message_id)
     return True
+
+
+def extract_status_change(
+    chat_member_update: ChatMemberUpdated,
+) -> tuple[bool, bool] | None:
+    """
+    Takes a ChatMemberUpdated instance and extracts whether the
+    'old_chat_member' was a member of the chat and whether the 'new_chat_member'
+    is a member of the chat. Returns None, if the status didn't change.
+    """
+
+    status_change = chat_member_update.difference().get("status")
+    old_is_member, new_is_member = chat_member_update.difference().get(
+        "is_member", (None, None)
+    )
+
+    if status_change is None:
+        return None
+
+    old_status, new_status = status_change
+    was_member = old_status in [
+        ChatMember.MEMBER,
+        ChatMember.OWNER,
+        ChatMember.ADMINISTRATOR,
+    ] or (old_status == ChatMember.RESTRICTED and old_is_member is True)
+    is_member = new_status in [
+        ChatMember.MEMBER,
+        ChatMember.OWNER,
+        ChatMember.ADMINISTRATOR,
+    ] or (new_status == ChatMember.RESTRICTED and new_is_member is True)
+
+    return was_member, is_member
+
+
+async def greet_chat_members(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """Greets new users in chats and announces when someone leaves"""
+    chat_member = update.chat_member
+    if chat_member is None:
+        return
+
+    effective_chat = update.effective_chat
+    if effective_chat is None:
+        return
+
+    result = extract_status_change(chat_member)
+    if result is None:
+        return
+
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get("welcome")
+    if msg is None:
+        logging.error("could not find message welcome")
+        return
+
+    was_member, is_member = result
+    if not was_member and is_member:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            parse_mode="HTML",
+            text=msg,
+        )
 
 
 async def handle_message_generic(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -938,6 +1002,10 @@ async def run(
     members_handler = MessageHandler(filters.Chat(chat_id=cid), handle_message_generic)
     application.add_handler(members_handler)
 
+    application.add_handler(
+        ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
+    )
+
     try:
         await application.initialize()
         await post_init(application)
@@ -945,7 +1013,7 @@ async def run(
         await application.start()
 
         assert application.updater is not None
-        await application.updater.start_polling()
+        await application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
 
         scheduler.start()
 

@@ -1,5 +1,6 @@
 # Runtime Data
 data/
+msgs/
 
 # Config
 config.toml

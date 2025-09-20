@@ -774,9 +774,16 @@ async def cmd_addquote(update: Update, context: ContextTypes.DEFAULT_TYPE):
     res = try_do_add_quote(reply_to_message, message)
 
     ok, err_msg = res
-    if not ok:
-        assert err_msg is not None
-        await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
+    if ok:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            reply_to_message_id=message.id,
+            text="Successfully added quote.",
+        )
+        return
+
+    assert err_msg is not None
+    await context.bot.send_message(chat_id=effective_chat.id, text=err_msg)
 
 
 async def cmd_getquote(update: Update, context: ContextTypes.DEFAULT_TYPE):

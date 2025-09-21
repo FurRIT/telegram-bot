@@ -67,6 +67,7 @@ class BotData(TypedDict):
     cmds_msg: str
     msg_store: MessageStore
     role_deriver: RoleDeriver
+    summon_tracker: SummonTracker
 
 
 async def _random_sticker_pack_sticker(
@@ -922,6 +923,44 @@ async def cmd_awoofines(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     await effective_chat.send_message(text=reply_esc, parse_mode="MarkdownV2")
 
 
+def _derive_bulletin_msg() -> str:
+    """
+    Derive the name of the current week's bulletin in the message store.
+    """
+
+    today = datetime.date.today()
+    wkday = today.isoweekday()
+
+    dy_off = wkday % 7
+    dt_off = datetime.timedelta(dy_off)
+
+    target = today - dt_off
+
+    name = f"bulletin.{target.year}.{target.month:02}.{target.day:02}"
+    return name
+
+
+async def cmd_bulletin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Bulletin command.
+    """
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    msg_name = _derive_bulletin_msg()
+
+    bot_data = cast(BotData, context.bot_data)
+    msg = bot_data["msg_store"].get(msg_name)
+
+    if msg is None:
+        logging.warning("could not find bulletin message %s", msg_name)
+
+        await effective_chat.send_message("Could not find a bulletin for this week.")
+        return
+
+    await effective_chat.send_message(text=msg, parse_mode="HTML")
+
+
 async def daily_e(application: Application):
     """
     Send an 'e' message to the main chat.
@@ -963,11 +1002,28 @@ async def daily_quote(application: Application):
     )
 
 
+async def weekly_bulletin(application: Application):
+    """
+    Automatically send the weekly bulleting.
+    """
+    bot_data = cast(BotData, application.bot_data)
+
+    msg_name = _derive_bulletin_msg()
+    msg = bot_data["msg_store"].get(msg_name)
+    if msg is None:
+        logging.warning("could not find weekly bulletin message %s", msg_name)
+        return
+
+    cid = bot_data["cid"]
+    await application.bot.send_message(chat_id=cid, text=msg, parse_mode="HTML")
+
+
 COMMAND_HANDLERS = [
     ("commands", cmd_commands, "Get the list of commands."),
     ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
     ("chats", cmd_chats, "Get a list of chats, channels, and sites."),
     ("welcome", cmd_welcome, "Get welcome information for new Users."),
+    ("bulletin", cmd_bulletin, "Get the weekly bulletin for this week."),
     (
         "channels_sfw",
         cmd_channels_sfw,
@@ -1061,6 +1117,11 @@ async def run(
     scheduler.add_job(
         daily_quote,
         CronTrigger(hour=7, minute=0),
+        args=[application],
+    )
+    scheduler.add_job(
+        weekly_bulletin,
+        CronTrigger(hour=9, minute=0, day_of_week=0),
         args=[application],
     )
 

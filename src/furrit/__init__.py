@@ -14,8 +14,11 @@ import datetime
 import textwrap
 import argparse
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
+
+import aiohttp.web
+
 from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
 from telegram.ext import (
     ApplicationBuilder,
@@ -31,6 +34,8 @@ import telegram.helpers
 
 from furrit.role import Role, RoleDeriver
 from furrit.config import load_config
+from furrit.server import routes
+
 from furrit.db.users import (
     get_user_fines,
     add_update_tg_user,
@@ -659,6 +664,11 @@ async def run(
         ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
     )
 
+    web_app = aiohttp.web.Application()
+    web_app.add_routes(routes)
+
+    web_runner = aiohttp.web.AppRunner(web_app)
+
     try:
         await application.initialize()
         await post_init(application)
@@ -670,6 +680,10 @@ async def run(
 
         scheduler.start()
 
+        await web_runner.setup()
+        site = aiohttp.web.TCPSite(web_runner, "localhost", 8080)
+        await site.start()
+
         await asyncio.Future()
     finally:
         assert application.updater is not None
@@ -677,6 +691,8 @@ async def run(
 
         await application.stop()
         await application.shutdown()
+
+        await web_runner.cleanup()
 
 
 def main() -> None:

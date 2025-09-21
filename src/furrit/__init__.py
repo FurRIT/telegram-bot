@@ -49,6 +49,8 @@ from furrit.db.quotes import (
     derive_quote_stats,
     derive_user_quote_stats,
 )
+
+from furrit.types import BotData
 from furrit.parse import parse_optional_username
 from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
@@ -57,19 +59,6 @@ from furrit.cmd.quote import cmd_addquote, cmd_getquote, cmd_quotestats
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-
-
-class BotData(TypedDict):
-    """
-    Type description of custom bot data.
-    """
-
-    cid: int
-    admin_cid: int
-    cmds_msg: str
-    msg_store: MessageStore
-    role_deriver: RoleDeriver
-    summon_tracker: SummonTracker
 
 
 async def _random_sticker_pack_sticker(

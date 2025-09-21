@@ -1002,6 +1002,22 @@ async def daily_quote(application: Application):
     )
 
 
+async def weekly_bulletin(application: Application):
+    """
+    Automatically send the weekly bulleting.
+    """
+    bot_data = cast(BotData, application.bot_data)
+
+    msg_name = _derive_bulletin_msg()
+    msg = bot_data["msg_store"].get(msg_name)
+    if msg is None:
+        logging.warning("could not find weekly bulletin message %s", msg_name)
+        return
+
+    cid = bot_data["cid"]
+    await application.bot.send_message(chat_id=cid, text=msg, parse_mode="HTML")
+
+
 COMMAND_HANDLERS = [
     ("commands", cmd_commands, "Get the list of commands."),
     ("links", cmd_links, "Get a list of FurRIT chats, channels, and sites."),
@@ -1101,6 +1117,11 @@ async def run(
     scheduler.add_job(
         daily_quote,
         CronTrigger(hour=7, minute=0),
+        args=[application],
+    )
+    scheduler.add_job(
+        weekly_bulletin,
+        CronTrigger(hour=9, minute=0, day_of_week=0),
         args=[application],
     )
 

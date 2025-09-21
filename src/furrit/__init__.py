@@ -57,6 +57,15 @@ from furrit.message import MessageStore, load_store_dir
 
 from furrit.cmd.fine import cmd_fine, cmd_unfine, cmd_awoofines
 from furrit.cmd.quote import cmd_addquote, cmd_getquote, cmd_quotestats
+from furrit.cmd.static import (
+    cmd_commands,
+    cmd_links,
+    cmd_chats,
+    cmd_welcome,
+    cmd_channels_sfw,
+    cmd_channels_nsfw,
+    cmd_rules,
+)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -388,152 +397,6 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sticker = await _random_sticker_pack_sticker(BARN_STICKER_PACK_NAME, context)
     await message.reply_sticker(
         sticker=sticker, reply_to_message_id=reply_to_message.id
-    )
-
-
-async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'welcome' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("welcome")
-
-    if msg is None:
-        logging.error("could not find message welcome")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'links' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("links")
-
-    if msg is None:
-        logging.error("could not find message links")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'links' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("links")
-
-    if msg is None:
-        logging.error("could not find message links")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'rules' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("rules")
-
-    if msg is None:
-        logging.error("could not find message rules")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_channels_sfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'channels.sfw' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("channels.sfw")
-
-    if msg is None:
-        logging.error("could not find message channels.sfw")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_channels_nsfw(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show 'channels.nsfw' message.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-    msg = bot_data["msg_store"].get("channels.nsfw")
-
-    if msg is None:
-        logging.error("could not find message channels.nsfw")
-        return
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        parse_mode="HTML",
-        text=msg,
-        disable_web_page_preview=True,
-    )
-
-
-async def cmd_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Show a derived message that summarizes commands.
-    """
-    effective_chat = update.effective_chat
-    assert effective_chat is not None
-
-    bot_data = cast(BotData, context.bot_data)
-
-    await context.bot.send_message(
-        chat_id=effective_chat.id, parse_mode="HTML", text=bot_data["cmds_msg"]
     )
 
 

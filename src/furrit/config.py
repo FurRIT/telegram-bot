@@ -219,7 +219,7 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         msgs_dir = r_msgs_dir
 
     if not os.path.isdir(msgs_dir):
-        return (None, f"error: .msgs_dir '{msgs_dir}' does not exist or is not a dir")
+        return (None, f".msgs_dir '{msgs_dir}' does not exist or is not a dir")
 
     r_admin_ids: list[int] = raw["admin_ids"]
     admin_ids = frozenset(r_admin_ids)

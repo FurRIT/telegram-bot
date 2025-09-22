@@ -41,16 +41,26 @@ class SummonSection:
 
 
 @dataclasses.dataclass(frozen=True)
+class ChatsSection:
+    """
+    A `chats` section in the configuration.
+    """
+
+    main: int
+    admin: int
+    events: int
+
+
+@dataclasses.dataclass(frozen=True)
 class Config:
     """
     Root Configuration.
     """
 
-    cid: int
-    admin_cid: int
     bot_token: str
     admin_ids: frozenset[int]
     msgs_dir: str
+    chats: ChatsSection
     summons: Sequence[SummonSection]
 
 
@@ -176,6 +186,27 @@ def _load_summons(
     return (sections, None)
 
 
+def _load_chats(raw: dict[str, Any]) -> tuple[ChatsSection, None] | tuple[None, str]:
+    """
+    Load `.chats` top-level mapping.
+    """
+
+    if not ("main" in raw and isinstance(raw["main"], int)):
+        return (None, ".chats.main must exist and be of type int")
+
+    if not ("admin" in raw and isinstance(raw["admin"], int)):
+        return (None, ".chats.admin must exist and be of type int")
+
+    if not ("events" in raw and isinstance(raw["events"], int)):
+        return (None, ".chats.events must exist and be of type int")
+
+    main: int = raw["main"]
+    admin: int = raw["admin"]
+    events: int = raw["events"]
+
+    return (ChatsSection(main, admin, events), None)
+
+
 def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
     """
     Load a Config from a configuration file.
@@ -191,12 +222,6 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
             raw = tomllib.load(file)
         except tomllib.TOMLDecodeError:
             return (None, "error occured during toml decoding")
-
-    if not ("cid" in raw and isinstance(raw["cid"], int)):
-        return (None, ".cid must exist and be of type int")
-
-    if not ("admin_cid" in raw and isinstance(raw["admin_cid"], int)):
-        return (None, ".admin_cid must exist and be of type int")
 
     if not ("bot_token" in raw and isinstance(raw["bot_token"], str)):
         return (None, ".bot_token must exist and be of type str")
@@ -224,8 +249,6 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
     r_admin_ids: list[int] = raw["admin_ids"]
     admin_ids = frozenset(r_admin_ids)
 
-    cid: int = raw["cid"]
-    admin_cid: int = raw["admin_cid"]
     bot_token: str = raw["bot_token"]
 
     summons, summons_err = _load_summons(raw)
@@ -233,5 +256,14 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         return (None, summons_err)
     assert summons is not None
 
-    config = Config(cid, admin_cid, bot_token, admin_ids, msgs_dir, summons)
+    if not ("chats" in raw and isinstance(raw["chats"], dict)):
+        return (None, ".chats does not exist or is not a mapping")
+
+    r_chats = raw["chats"]
+    chats, chats_err = _load_chats(r_chats)
+    if chats_err is not None:
+        return (None, chats_err)
+    assert chats is not None
+
+    config = Config(bot_token, admin_ids, msgs_dir, chats, summons)
     return (config, None)

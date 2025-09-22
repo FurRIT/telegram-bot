@@ -720,13 +720,13 @@ def main() -> None:
     assert m_config is not None
     config = m_config
 
-    summon_tracker = SummonTracker.from_sections(config.cid, config.summons)
+    summon_tracker = SummonTracker.from_sections(config.chats.main, config.summons)
     msg_store = load_store_dir(config.msgs_dir)
 
     asyncio.run(
         run(
-            config.cid,
-            config.admin_cid,
+            config.chats.main,
+            config.chats.admin,
             config.bot_token,
             config.admin_ids,
             msg_store,

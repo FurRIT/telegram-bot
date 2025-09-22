@@ -55,7 +55,7 @@ from furrit.db.quotes import (
     derive_user_quote_stats,
 )
 
-from furrit.types import BotData
+from furrit.types import BotData, ApiBotData
 from furrit.parse import parse_optional_username
 from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
@@ -593,6 +593,7 @@ COMMAND_HANDLERS = [
 async def run(
     cid: int,
     admin_cid: int,
+    events_cid: int,
     bot_token: str,
     admin_ids: frozenset[int],
     msg_store: MessageStore,
@@ -669,8 +670,6 @@ async def run(
     web_app = aiohttp.web.Application()
     web_app.add_routes(routes)
 
-    web_runner = aiohttp.web.AppRunner(web_app)
-
     try:
         await application.initialize()
         await post_init(application)
@@ -681,6 +680,11 @@ async def run(
         await application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
 
         scheduler.start()
+
+        api_bd = ApiBotData(cid, events_cid, application)
+        web_app["ctx"] = api_bd
+
+        web_runner = aiohttp.web.AppRunner(web_app)
 
         await web_runner.setup()
         site = aiohttp.web.TCPSite(web_runner, api_host, api_port)
@@ -729,6 +733,7 @@ def main() -> None:
         run(
             config.chats.main,
             config.chats.admin,
+            config.chats.events,
             config.bot_token,
             config.admin_ids,
             msg_store,

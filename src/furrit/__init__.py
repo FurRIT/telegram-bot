@@ -597,6 +597,8 @@ async def run(
     admin_ids: frozenset[int],
     msg_store: MessageStore,
     summon_tracker: SummonTracker,
+    api_host: str,
+    api_port: int,
 ) -> None:
     """
     Run the Application.
@@ -681,7 +683,7 @@ async def run(
         scheduler.start()
 
         await web_runner.setup()
-        site = aiohttp.web.TCPSite(web_runner, "localhost", 8080)
+        site = aiohttp.web.TCPSite(web_runner, api_host, api_port)
         await site.start()
 
         await asyncio.Future()
@@ -731,6 +733,8 @@ def main() -> None:
             config.admin_ids,
             msg_store,
             summon_tracker,
+            config.api.host,
+            config.api.port,
         )
     )
 

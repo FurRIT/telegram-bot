@@ -2,6 +2,10 @@ bot_token = ""    # bot token
 admin_ids = []    # administrator telegram ids
 msgs_dir = "msgs" # relative or absolute message path
 
+[api]
+host = "localhost"
+port = 8080
+
 [chats]
 main = 0
 admin = 0

@@ -3,8 +3,6 @@ HTTP Server.
 """
 
 from typing import cast
-import json
-import copy
 
 import aiohttp
 import aiohttp.web
@@ -13,6 +11,7 @@ import telegram
 
 from furrit.types import ApiBotData
 from furrit.events import RawEvent, raw_event_to_msg_text
+from furrit.button import EventCallbackData, EventReactionKind
 from furrit.db.events import (
     try_get_event_by_ext_id,
     insert_event,
@@ -40,22 +39,30 @@ async def post_event(request: aiohttp.web.Request):
     m_event_row = try_get_event_by_ext_id(raw_event["uid"])
     msg_txt = raw_event_to_msg_text(raw_event)
 
-    payload = {"pk": 0, "eid": raw_event["uid"]}
-
-    def _mk_payload(kind: int) -> str:
-        specific = copy.copy(payload)
-        specific["kind"] = kind
-
-        return json.dumps(specific)
-
     if m_event_row is None:
+        eid = raw_event["uid"]
         event_row = insert_event(raw_event["uid"])
 
         keyboard = [
             [
-                telegram.InlineKeyboardButton("Yes", callback_data=_mk_payload(0)),
-                telegram.InlineKeyboardButton("Maybe", callback_data=_mk_payload(1)),
-                telegram.InlineKeyboardButton("No", callback_data=_mk_payload(2)),
+                telegram.InlineKeyboardButton(
+                    "Yes",
+                    callback_data=EventCallbackData(
+                        eid, EventReactionKind.YES
+                    ).to_json(),
+                ),
+                telegram.InlineKeyboardButton(
+                    "Maybe",
+                    callback_data=EventCallbackData(
+                        eid, EventReactionKind.MAYBE
+                    ).to_json(),
+                ),
+                telegram.InlineKeyboardButton(
+                    "No",
+                    callback_data=EventCallbackData(
+                        eid, EventReactionKind.NO
+                    ).to_json(),
+                ),
             ]
         ]
         reply_markup = telegram.InlineKeyboardMarkup(keyboard)
@@ -86,8 +93,7 @@ async def post_event(request: aiohttp.web.Request):
 
     event_messages = try_get_event_messages_by_event_id(m_event_row.id)
     for event_message in event_messages:
-        # TODO: edit messages
+        # TODO: edit existing messages with new information
         pass
 
-    # TODO: update existing event
     return aiohttp.web.Response(status=201)

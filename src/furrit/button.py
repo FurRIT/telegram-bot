@@ -15,7 +15,7 @@ class RawEventCallbackData(TypedDict):
     """
 
     pk: Literal[0]
-    ev: str
+    ev: int
     rk: Literal[0] | Literal[1] | Literal[2]
 
 
@@ -42,7 +42,7 @@ class EventCallbackData:
     reaction_kind: `.rk` from source
     """
 
-    ext_id: str
+    eid: int
     reaction_kind: EventReactionKind
 
     @staticmethod
@@ -63,7 +63,7 @@ class EventCallbackData:
 
         return {
             "pk": 0,
-            "ev": self.ext_id,
+            "ev": self.eid,
             "rk": self.reaction_kind.value,
         }
 

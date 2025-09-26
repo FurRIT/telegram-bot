@@ -40,7 +40,6 @@ async def post_event(request: aiohttp.web.Request):
     msg_txt = raw_event_to_msg_text(raw_event)
 
     if m_event_row is None:
-        eid = raw_event["uid"]
         event_row = insert_event(raw_event["uid"])
 
         keyboard = [
@@ -48,19 +47,19 @@ async def post_event(request: aiohttp.web.Request):
                 telegram.InlineKeyboardButton(
                     "Yes",
                     callback_data=EventCallbackData(
-                        eid, EventReactionKind.YES
+                        event_row.id, EventReactionKind.YES
                     ).to_json(),
                 ),
                 telegram.InlineKeyboardButton(
                     "Maybe",
                     callback_data=EventCallbackData(
-                        eid, EventReactionKind.MAYBE
+                        event_row.id, EventReactionKind.MAYBE
                     ).to_json(),
                 ),
                 telegram.InlineKeyboardButton(
                     "No",
                     callback_data=EventCallbackData(
-                        eid, EventReactionKind.NO
+                        event_row.id, EventReactionKind.NO
                     ).to_json(),
                 ),
             ]

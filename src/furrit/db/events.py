@@ -49,7 +49,7 @@ def try_get_event_by_ext_id(ext_id: str) -> EventRow | None:
     return EventRow(*row)
 
 
-def insert_event(ext_id: str) -> None:
+def insert_event(ext_id: str) -> EventRow:
     """
     Insert a new row into EVENTS.
     """
@@ -64,6 +64,11 @@ def insert_event(ext_id: str) -> None:
 
     cur.close()
     con.close()
+
+    event_row = try_get_event_by_ext_id(ext_id)
+    assert event_row is not None
+
+    return event_row
 
 
 def try_get_event_messages_by_event_id(event_id: int) -> Sequence[EventMessageRow]:

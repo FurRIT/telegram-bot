@@ -62,6 +62,7 @@ def insert_event(ext_id: str) -> EventRow:
         (ext_id,),
     )
 
+    con.commit()
     cur.close()
 
     cur = con.cursor()
@@ -117,5 +118,6 @@ def insert_event_message(event_id: int, tg_msg_id: int, tg_chat_id: int) -> None
         ),
     )
 
+    con.commit()
     cur.close()
     con.close()

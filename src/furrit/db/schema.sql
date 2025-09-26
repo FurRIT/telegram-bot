@@ -26,9 +26,8 @@ CREATE TABLE QUOTES(
 );
 
 CREATE TABLE EVENTS(
-    id                  INTEGER NOT NULL,
-    ext_id              VARCHAR(24) NOT NULL,
-    PRIMARY KEY (id, ext_id)
+    id                  INTEGER PRIMARY KEY,
+    ext_id              VARCHAR(24) NOT NULL UNIQUE
 );
 
 CREATE TABLE EVENT_MESSAGES(

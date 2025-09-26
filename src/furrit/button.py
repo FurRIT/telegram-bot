@@ -114,4 +114,3 @@ async def handle_button(
 
     # TODO: actually perform a request to the bridge to rsvp for us
     print(event)
-

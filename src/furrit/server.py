@@ -3,9 +3,13 @@ HTTP Server.
 """
 
 from typing import cast
+import json
+import copy
 
 import aiohttp
 import aiohttp.web
+
+import telegram
 
 from furrit.types import ApiBotData
 from furrit.events import RawEvent, raw_event_to_msg_text
@@ -36,11 +40,31 @@ async def post_event(request: aiohttp.web.Request):
     m_event_row = try_get_event_by_ext_id(raw_event["uid"])
     msg_txt = raw_event_to_msg_text(raw_event)
 
+    payload = {"pk": 0, "eid": raw_event["uid"]}
+
+    def _mk_payload(kind: int) -> str:
+        specific = copy.copy(payload)
+        specific["kind"] = kind
+
+        return json.dumps(specific)
+
     if m_event_row is None:
         event_row = insert_event(raw_event["uid"])
 
+        keyboard = [
+            [
+                telegram.InlineKeyboardButton("Yes", callback_data=_mk_payload(0)),
+                telegram.InlineKeyboardButton("Maybe", callback_data=_mk_payload(1)),
+                telegram.InlineKeyboardButton("No", callback_data=_mk_payload(2)),
+            ]
+        ]
+        reply_markup = telegram.InlineKeyboardMarkup(keyboard)
+
         main_msg = await ctx.application.bot.send_message(
-            chat_id=ctx.main_cid, text=msg_txt, parse_mode="HTML"
+            chat_id=ctx.main_cid,
+            text=msg_txt,
+            parse_mode="HTML",
+            reply_markup=reply_markup,
         )
 
         # XXX(mwp): not sure why this was needed; for some reason
@@ -49,7 +73,10 @@ async def post_event(request: aiohttp.web.Request):
         # await asyncio.sleep(0.20)
 
         events_msg = await ctx.application.bot.send_message(
-            chat_id=ctx.events_cid, text=msg_txt, parse_mode="HTML"
+            chat_id=ctx.events_cid,
+            text=msg_txt,
+            parse_mode="HTML",
+            reply_markup=reply_markup,
         )
 
         insert_event_message(event_row.id, main_msg.id, ctx.main_cid)

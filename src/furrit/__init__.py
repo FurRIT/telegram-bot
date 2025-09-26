@@ -2,10 +2,9 @@
 FurRIT Telegram Bot.
 """
 
-from typing import TypedDict, cast
+from typing import cast
 import io
 import re
-import os
 import sys
 import random
 import asyncio
@@ -19,44 +18,30 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 
 import aiohttp.web
 
-from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
+from telegram import Update, User, ChatMemberUpdated, ChatMember
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
     MessageHandler,
     Application,
-    Updater,
     filters,
     ChatMemberHandler,
 )
 import telegram.helpers
 
-from furrit.role import Role, RoleDeriver
+from furrit.role import RoleDeriver
 from furrit.config import load_config
 from furrit.server import routes
 
 from furrit.db.users import (
-    get_user_fines,
     add_update_tg_user,
     add_pan_count,
     incr_fine_awoo,
-    do_forgive_fine,
-    do_fine_user,
-    try_do_add_quote,
-    try_get_user_by_tg_id,
-    try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from furrit.db.quotes import (
-    search_quotes,
-    random_quote,
-    derive_quote_stats,
-    derive_user_quote_stats,
-)
-
+from furrit.db.quotes import random_quote
 from furrit.types import BotData, ApiBotData
-from furrit.parse import parse_optional_username
 from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
 

@@ -27,6 +27,7 @@ from telegram.ext import (
     Application,
     filters,
     ChatMemberHandler,
+    CallbackQueryHandler,
 )
 import telegram.helpers
 
@@ -42,6 +43,7 @@ from furrit.db.users import (
 )
 from furrit.db.quotes import random_quote
 from furrit.types import BotData, ApiBotData
+from furrit.button import handle_button
 from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
 
@@ -651,6 +653,8 @@ async def run(
     application.add_handler(
         ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
     )
+
+    application.add_handler(CallbackQueryHandler(handle_button))
 
     web_app = aiohttp.web.Application()
     web_app.add_routes(routes)

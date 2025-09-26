@@ -63,10 +63,19 @@ def insert_event(ext_id: str) -> EventRow:
     )
 
     cur.close()
+
+    cur = con.cursor()
+    cur.execute(
+        "SELECT id, ext_id FROM EVENTS WHERE ext_id = ? LIMIT 1",
+        (ext_id,),
+    )
+    row: tuple[int, str] | None = cur.fetchone()
+
+    cur.close()
     con.close()
 
-    event_row = try_get_event_by_ext_id(ext_id)
-    assert event_row is not None
+    assert row is not None
+    event_row = EventRow(*row)
 
     return event_row
 

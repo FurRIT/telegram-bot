@@ -49,7 +49,7 @@ def try_get_event_by_ext_id(ext_id: str) -> EventRow | None:
     return EventRow(*row)
 
 
-def insert_event(eid: int, ext_id: str) -> None:
+def insert_event(ext_id: str) -> None:
     """
     Insert a new row into EVENTS.
     """
@@ -58,11 +58,8 @@ def insert_event(eid: int, ext_id: str) -> None:
     cur = con.cursor()
 
     cur.execute(
-        "INSERT INTO EVENTS (id, ext_id) VALUES (?, ?)",
-        (
-            eid,
-            ext_id,
-        ),
+        "INSERT INTO EVENTS (ext_id) VALUES (?)",
+        (ext_id,),
     )
 
     cur.close()

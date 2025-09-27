@@ -20,6 +20,8 @@ class BotData(TypedDict):
     cid: int
     admin_cid: int
     cmds_msg: str
+    bridge_host: str
+    bridge_port: int
     msg_store: furrit.message.MessageStore
     role_deriver: furrit.role.RoleDeriver
     summon_tracker: furrit.summon.SummonTracker

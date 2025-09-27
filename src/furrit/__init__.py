@@ -587,6 +587,8 @@ async def run(
     summon_tracker: SummonTracker,
     api_host: str,
     api_port: int,
+    bridge_host: str,
+    bridge_port: int,
 ) -> None:
     """
     Run the Application.
@@ -615,6 +617,8 @@ async def run(
         application.bot_data["msg_store"] = msg_store
         application.bot_data["role_deriver"] = role_deriver
         application.bot_data["summon_tracker"] = summon_tracker
+        application.bot_data["bridge_host"] = bridge_host
+        application.bot_data["bridge_port"] = bridge_port
 
         await application.bot.set_my_commands(descriptors)
 
@@ -729,6 +733,8 @@ def main() -> None:
             summon_tracker,
             config.api.host,
             config.api.port,
+            config.bridge.host,
+            config.bridge.port,
         )
     )
 

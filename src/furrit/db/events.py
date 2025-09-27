@@ -26,6 +26,29 @@ class EventMessageRow(NamedTuple):
     tg_chat_id: int
 
 
+def try_get_event_by_id(eid: int) -> EventRow | None:
+    """
+    Try to get an Event row by `event.id`.
+    """
+
+    con = connect()
+    cur = con.cursor()
+
+    cur.execute(
+        "SELECT id, ext_id FROM EVENTS WHERE id = ? LIMIT 1",
+        (eid,),
+    )
+    row: tuple[int, str] | None = cur.fetchone()
+
+    if row is None:
+        return None
+
+    cur.close()
+    con.close()
+
+    return EventRow(*row)
+
+
 def try_get_event_by_ext_id(ext_id: str) -> EventRow | None:
     """
     Try to get an Event row by `event.ext_id`.

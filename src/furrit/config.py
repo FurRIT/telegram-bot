@@ -51,6 +51,16 @@ class ApiSection:
 
 
 @dataclasses.dataclass(frozen=True)
+class BridgeSection:
+    """
+    A `bridge` section in the Configuration.
+    """
+
+    host: str
+    port: int
+
+
+@dataclasses.dataclass(frozen=True)
 class ChatsSection:
     """
     A `chats` section in the configuration.
@@ -71,6 +81,7 @@ class Config:
     admin_ids: frozenset[int]
     msgs_dir: str
     api: ApiSection
+    bridge: BridgeSection
     chats: ChatsSection
     summons: Sequence[SummonSection]
 
@@ -235,6 +246,23 @@ def _load_api(raw: dict[str, Any]) -> tuple[ApiSection, None] | tuple[None, str]
     return (ApiSection(host, port), None)
 
 
+def _load_bridge(raw: dict[str, Any]) -> tuple[BridgeSection, None] | tuple[None, str]:
+    """
+    Load `.bridge` top-level mapping.
+    """
+
+    if not ("host" in raw and isinstance(raw["host"], str)):
+        return (None, ".api.host must exist and be of type str")
+
+    if not ("port" in raw and isinstance(raw["port"], int)):
+        return (None, ".api.port must exist and be of type int")
+
+    host: str = raw["host"]
+    port: int = raw["port"]
+
+    return (BridgeSection(host, port), None)
+
+
 def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
     """
     Load a Config from a configuration file.
@@ -293,6 +321,15 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         return (None, api_err)
     assert api is not None
 
+    if not ("bridge" in raw and isinstance(raw["bridge"], dict)):
+        return (None, ".bridge does not exist or is not a mapping")
+
+    r_bridge = raw["bridge"]
+    bridge, bridge_err = _load_bridge(r_bridge)
+    if bridge_err is not None:
+        return (None, bridge_err)
+    assert bridge is not None
+
     if not ("chats" in raw and isinstance(raw["chats"], dict)):
         return (None, ".chats does not exist or is not a mapping")
 
@@ -302,5 +339,5 @@ def load_config(path: str) -> tuple[Config, None] | tuple[None, str]:
         return (None, chats_err)
     assert chats is not None
 
-    config = Config(bot_token, admin_ids, msgs_dir, api, chats, summons)
+    config = Config(bot_token, admin_ids, msgs_dir, api, bridge, chats, summons)
     return (config, None)

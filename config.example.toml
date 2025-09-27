@@ -6,6 +6,10 @@ msgs_dir = "msgs" # relative or absolute message path
 host = "localhost"
 port = 8080
 
+[bridge]
+host = "localhost"
+port = 8081
+
 [chats]
 main = 0
 admin = 0

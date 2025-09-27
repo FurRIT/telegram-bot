@@ -113,7 +113,8 @@ def try_get_event_messages_by_event_id(event_id: int) -> Sequence[EventMessageRo
     cur = con.cursor()
 
     cur.execute(
-        "SELECT event_id, tg_msg_id, tg_chat_id FROM EVENT_MESSAGES WHERE event_id = ?", (event_id,)
+        "SELECT event_id, tg_msg_id, tg_chat_id FROM EVENT_MESSAGES WHERE event_id = ?",
+        (event_id,),
     )
     rows: list[tuple[int, int, int]] = cur.fetchall()
 

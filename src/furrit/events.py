@@ -88,7 +88,7 @@ def _format_date_range(raw_event: RawEvent) -> str:
     dtstart = _field_to_local_datetime("dtstart")
     dtend = _field_to_local_datetime("dtend")
 
-    components = [dtstart, dtend]
+    components = [dtstart, dtend] if not (allday and (dtstart == dtend)) else [dtstart]
 
     fmted = " - ".join(map(datetime_fmter, components))
     buf.write(fmted)

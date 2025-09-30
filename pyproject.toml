@@ -1,6 +1,6 @@
 [project]
 name = "furrit"
-version = "0.1.0"
+version = "1.0.0"
 description = "FurRIT Telegram Bot"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -24,3 +24,15 @@ CREATE TABLE QUOTES(
     quoter_msg_id       INTEGER,
     quote               VARCHAR(3584) NOT NULL
 );
+
+CREATE TABLE EVENTS(
+    id                  INTEGER PRIMARY KEY,
+    ext_id              VARCHAR(24) NOT NULL UNIQUE
+);
+
+CREATE TABLE EVENT_MESSAGES(
+    event_id            INTEGER REFERENCES EVENTS(id) NOT NULL,
+    tg_msg_id           INTEGER NOT NULL,
+    tg_chat_id          INTEGER NOT NULL,
+    PRIMARY KEY (event_id, tg_msg_id, tg_chat_id)
+);

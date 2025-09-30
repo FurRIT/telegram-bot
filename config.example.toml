@@ -1,9 +1,19 @@
-cid = 0           # main chat identifier
-admin_cid = 0     # admin chat identifier
 bot_token = ""    # bot token
 admin_ids = []    # administrator telegram ids
 msgs_dir = "msgs" # relative or absolute message path
 
+[api]
+host = "localhost"
+port = 8080
+
+[bridge]
+host = "localhost"
+port = 8081
+
+[chats]
+main = 0
+admin = 0
+events = 0
 
 [summon.category] # category should be named for the category
 keywords = ["physics"] # keywords that should result in a summon

@@ -2,10 +2,9 @@
 FurRIT Telegram Bot.
 """
 
-from typing import TypedDict, cast
+from typing import cast
 import io
 import re
-import os
 import sys
 import random
 import asyncio
@@ -14,44 +13,37 @@ import datetime
 import textwrap
 import argparse
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from apscheduler.triggers.cron import CronTrigger  # type: ignore
-from telegram import Update, Bot, User, ChatMemberUpdated, ChatMember
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
+
+import aiohttp.web
+
+from telegram import Update, User, ChatMemberUpdated, ChatMember
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
     MessageHandler,
     Application,
-    Updater,
     filters,
     ChatMemberHandler,
+    CallbackQueryHandler,
 )
 import telegram.helpers
 
-from furrit.role import Role, RoleDeriver
+from furrit.role import RoleDeriver
 from furrit.config import load_config
+from furrit.server import routes
+
 from furrit.db.users import (
-    get_user_fines,
     add_update_tg_user,
     add_pan_count,
     incr_fine_awoo,
-    do_forgive_fine,
-    do_fine_user,
-    try_do_add_quote,
-    try_get_user_by_tg_id,
-    try_get_user_by_tg_username,
     AWOO_FINE_COST,
 )
-from furrit.db.quotes import (
-    search_quotes,
-    random_quote,
-    derive_quote_stats,
-    derive_user_quote_stats,
-)
-
-from furrit.types import BotData
-from furrit.parse import parse_optional_username
+from furrit.db.quotes import random_quote
+from furrit.types import BotData, ApiBotData
+from furrit.button import handle_button
 from furrit.summon import SummonTracker
 from furrit.message import MessageStore, load_store_dir
 
@@ -588,10 +580,15 @@ COMMAND_HANDLERS = [
 async def run(
     cid: int,
     admin_cid: int,
+    events_cid: int,
     bot_token: str,
     admin_ids: frozenset[int],
     msg_store: MessageStore,
     summon_tracker: SummonTracker,
+    api_host: str,
+    api_port: int,
+    bridge_host: str,
+    bridge_port: int,
 ) -> None:
     """
     Run the Application.
@@ -620,6 +617,8 @@ async def run(
         application.bot_data["msg_store"] = msg_store
         application.bot_data["role_deriver"] = role_deriver
         application.bot_data["summon_tracker"] = summon_tracker
+        application.bot_data["bridge_host"] = bridge_host
+        application.bot_data["bridge_port"] = bridge_port
 
         await application.bot.set_my_commands(descriptors)
 
@@ -659,6 +658,11 @@ async def run(
         ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER)
     )
 
+    application.add_handler(CallbackQueryHandler(handle_button))
+
+    web_app = aiohttp.web.Application()
+    web_app.add_routes(routes)
+
     try:
         await application.initialize()
         await post_init(application)
@@ -670,6 +674,15 @@ async def run(
 
         scheduler.start()
 
+        api_bd = ApiBotData(cid, events_cid, application)
+        web_app["ctx"] = api_bd
+
+        web_runner = aiohttp.web.AppRunner(web_app)
+
+        await web_runner.setup()
+        site = aiohttp.web.TCPSite(web_runner, api_host, api_port)
+        await site.start()
+
         await asyncio.Future()
     finally:
         assert application.updater is not None
@@ -677,6 +690,8 @@ async def run(
 
         await application.stop()
         await application.shutdown()
+
+        await web_runner.cleanup()
 
 
 def main() -> None:
@@ -704,17 +719,22 @@ def main() -> None:
     assert m_config is not None
     config = m_config
 
-    summon_tracker = SummonTracker.from_sections(config.cid, config.summons)
+    summon_tracker = SummonTracker.from_sections(config.chats.main, config.summons)
     msg_store = load_store_dir(config.msgs_dir)
 
     asyncio.run(
         run(
-            config.cid,
-            config.admin_cid,
+            config.chats.main,
+            config.chats.admin,
+            config.chats.events,
             config.bot_token,
             config.admin_ids,
             msg_store,
             summon_tracker,
+            config.api.host,
+            config.api.port,
+            config.bridge.host,
+            config.bridge.port,
         )
     )
 

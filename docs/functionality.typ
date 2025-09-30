@@ -419,4 +419,4 @@ implementation.
 
 == OpenAPI <appendix-openapi>
 
-#raw(read("openapi.yaml"), lang: "yaml")
+#raw(read("legacy.openapi.yaml"), lang: "yaml")

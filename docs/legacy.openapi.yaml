@@ -1,0 +1,316 @@
+openapi: 3.0.4
+info:
+  title: FurRIT Bot
+  description: |-
+    Stubbed specification of the FurRIT bot's API surface.
+  version: 0.0.1
+paths:
+  /sendBotMessage:
+    post:
+      description: Prompt the Bot to send a message.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendBotMessageRequest"
+      responses:
+        "200":
+          description: Message sent successfully
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error sending message
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /editBotMessage:
+    post:
+      description: Prompt the Bot to edit an existing message.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditBotMessageRequest"
+      responses:
+        "200":
+          description: Message edited successfully
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error editing message
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /scheduleEventNew:
+    post:
+      description: Prompt the Bot to send a new Event message.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleNewEventRequest"
+      responses:
+        "200":
+          description: |-
+            Event processed successfully
+
+            Returns the chat and message identifiers for the two sent messages.
+          content:
+            text/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    chatId:
+                      type: integer
+                    messageId:
+                      type: integer
+                  minItems: 2
+                  maxItems: 2
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error processing event
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /updateEventMessages:
+    post:
+      description: Prompt the Bot to update existing Event messages.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventMessagesRequest"
+      responses:
+        "200":
+          description: Successfully updated Event messages
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error trying to update Event
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /deleteEventMessages:
+    post:
+      description: Prompt the Bot to delete existing Event messages.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventMessagesRequest"
+      responses:
+        "200":
+          description: Successfully deleted Event messages
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error trying to update Event
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /scheduleEvent:
+    post:
+      description: |-
+        Prompt the Bot to send a new Event message.
+
+        NOTE: this does additional destructuring in a way that causes the bot to crash; DO NOT USE!
+
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleNewEventRequest"
+      responses:
+        "200":
+          description: |-
+            Event processed successfully
+
+            Returns the chat and message identifiers for the two sent messages.
+          content:
+            text/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    chatId:
+                      type: integer
+                    messageId:
+                      type: integer
+                  minItems: 2
+                  maxItems: 2
+        "413":
+          description: Request entry too large
+        "500":
+          description: Error processing event
+        default:
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StdResp"
+  /exportChatInviteLink:
+    get:
+      description: Generate and return an invite link for the main group chat.
+      responses:
+        "200":
+          description: Success; return invitation link.
+          content:
+            text/json:
+              schema:
+                type: string
+  /getChat:
+    get:
+      description: Export chat statistics.
+      responses:
+        "200":
+          description: Success; return chat information
+          content:
+            text/json:
+              schema:
+                type: object
+                properties:
+                  invite_link:
+                    type: string
+                  membersCount:
+                    type: integer
+                  administrators:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user:
+                          type: object
+                          properties:
+                            username:
+                              type: string
+                  eventsChannelLink:
+                    type: string
+                  conPlanningLink:
+                    type: string
+components:
+  schemas:
+    StdResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    SendBotMessageRequest:
+      type: object
+      description: |-
+        chatId          - Telegram chat identifier
+        message         - Message content - HTML formatted
+        replyMessageId  - Optional Telegram message identifier
+      properties:
+        chatId:
+          type: integer
+        message:
+          type: string
+        replyMessageId:
+          type: integer
+          nullable: true
+    EditBotMessageRequest:
+      type: object
+      description: |-
+        chatId         - Telegram chat identifier
+        editMessageId  - Telegram message identifier to edit
+        message        - New message content - HTML formatted
+      properties:
+        chatId:
+          type: integer
+        editMessageId:
+          type: integer
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        telegram:
+          type: object
+          properties:
+            username:
+              type: string
+        furryDetails:
+          type: object
+          properties:
+            furName:
+              type: string
+    Event:
+      type: object
+      description: |-
+        _id           - a number or stringified MongoDB ObjectID
+        summery       - string text summary of the event
+        dtstart       - an integer unix start time
+        dtend         - an integer unix end time
+        allday        - whether or not the event is all day
+        location      - event location string
+        description   - longer event description string
+        organizer     - User of the event organizer
+        attendees     - indirected metadata of each respondee
+      properties:
+        _id:
+          type: string
+        summery:
+          type: string
+        dtstart:
+          type: integer
+        dtend:
+          type: integer
+        allday:
+          type: boolean
+        location:
+          type: string
+        description:
+          type: string
+        organizer:
+          $ref: "#/components/schemas/User"
+        attendees:
+          type: array
+          items:
+            type: object
+            properties:
+              partstat:
+                type: string
+                enum: [ACCEPTED, TENTATIVE, DECLINED]
+              user:
+                $ref: "#/components/schemas/User"
+        telegramMessages:
+          type: array
+          items:
+            type: object
+            properties:
+              chatId:
+                type: integer
+              messageId:
+                type: integer
+    ScheduleNewEventRequest:
+      type: object
+      properties:
+        event:
+          $ref: "#/components/schemas/Event"
+    UpdateEventMessagesRequest:
+      type: object
+      properties:
+        event:
+          $ref: "#/components/schemas/Event"

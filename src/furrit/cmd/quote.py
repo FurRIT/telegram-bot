@@ -121,7 +121,7 @@ async def cmd_getquote(
 
     user, quote = user_quote
 
-    date = datetime.datetime.fromisoformat(quote.quoter_msg_sent_at)
+    date = datetime.datetime.fromisoformat(quote.author_msg_sent_at)
     date_fmted = date.strftime("%b %d %Y")
 
     response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'

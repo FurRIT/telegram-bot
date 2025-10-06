@@ -2,7 +2,7 @@
 Quote handling utilities.
 """
 
-from typing import NamedTuple
+from typing import NamedTuple, TypeAlias
 import re
 import dataclasses
 
@@ -18,12 +18,38 @@ class QuoteRow(NamedTuple):
     id: int
     tg_chat_id: int
     author_tg_id: int
-    author_msg_sent_at: str | None
+    author_msg_sent_at: str
     author_msg_id: int | None
     quoter_tg_id: int
-    quoter_msg_sent_at: str
+    quoter_msg_sent_at: str | None
     quoter_msg_id: int | None
     quote: str
+
+
+_SearchQuotesQueryRow: TypeAlias = tuple[
+    int,
+    int,
+    int,
+    str,
+    int,
+    int,
+    str | None,
+    int | None,
+    str,
+    int,
+]
+
+_SearchQuotesQueryRowNoUserId: TypeAlias = tuple[
+    int,
+    int,
+    int,
+    str,
+    int,
+    int,
+    str | None,
+    int | None,
+    str,
+]
 
 
 def search_quotes(
@@ -74,10 +100,7 @@ def search_quotes(
             safe_for_like,
         ),
     )
-    row: (
-        tuple[int, int, int, str | None, int | None, int, str, int | None, str, int]
-        | None
-    ) = cur.fetchone()
+    row: _SearchQuotesQueryRow | None = cur.fetchone()
 
     cur.close()
     con.close()
@@ -85,9 +108,7 @@ def search_quotes(
     if row is None:
         return None
 
-    quote_span: tuple[
-        int, int, int, str | None, int | None, int, str, int | None, str
-    ] = row[:-1]
+    quote_span: _SearchQuotesQueryRowNoUserId = row[:-1]
     user_span: int = row[-1]
 
     quote_row = QuoteRow(*quote_span)
@@ -130,10 +151,7 @@ def random_quote(tg_chat_id: int) -> tuple[UserRow, QuoteRow] | None:
         (tg_chat_id,),
     )
 
-    row: (
-        tuple[int, int, int, str | None, int | None, int, str, int | None, str, int]
-        | None
-    ) = cur.fetchone()
+    row: _SearchQuotesQueryRow | None = cur.fetchone()
 
     cur.close()
     con.close()
@@ -141,9 +159,7 @@ def random_quote(tg_chat_id: int) -> tuple[UserRow, QuoteRow] | None:
     if row is None:
         return None
 
-    quote_span: tuple[
-        int, int, int, str | None, int | None, int, str, int | None, str
-    ] = row[:-1]
+    quote_span: _SearchQuotesQueryRowNoUserId = row[:-1]
     user_span: int = row[-1]
     quote_row = QuoteRow(*quote_span)
 

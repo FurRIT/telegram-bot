@@ -505,7 +505,7 @@ async def daily_quote(application: Application):
         chat_id=cid, text=header_msg, parse_mode="MarkdownV2"
     )
 
-    quote_date = datetime.datetime.fromisoformat(quote.quoter_msg_sent_at)
+    quote_date = datetime.datetime.fromisoformat(quote.author_msg_sent_at)
     quote_date_fmted = quote_date.strftime("%b %d %Y")
 
     response = f'"{quote.quote}"\n  — {user.tg_first_name}\n\n'

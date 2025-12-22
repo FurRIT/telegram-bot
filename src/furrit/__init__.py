@@ -392,6 +392,46 @@ async def cmd_barn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+SHOEBILL_STICKER_PACK_NAME = "stupidscout_shoebill"
+
+
+async def cmd_shoebill(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """\\shoebill command"""
+    message = update.message
+    assert message is not None
+
+    effective_chat = update.effective_chat
+    assert effective_chat is not None
+
+    reply_to_message = message.reply_to_message
+    if reply_to_message is None:
+        await context.bot.send_message(
+            chat_id=effective_chat.id,
+            text="You need to reply to a message to shoebill.",
+        )
+        return
+
+    if message.from_user == reply_to_message.from_user:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't shoebill yourself."
+        )
+        return
+
+    user_to_shoebill = reply_to_message.from_user
+    assert user_to_shoebill is not None
+
+    if user_to_shoebill.id == context.bot.id:
+        await context.bot.send_message(
+            chat_id=effective_chat.id, text="You can't shoebill the bot."
+        )
+        return
+
+    sticker = await _random_sticker_pack_sticker(SHOEBILL_STICKER_PACK_NAME, context)
+    await message.reply_sticker(
+        sticker=sticker, reply_to_message_id=reply_to_message.id
+    )
+
+
 BAN_COMMAND_LENGTH = datetime.timedelta(minutes=5)
 
 
